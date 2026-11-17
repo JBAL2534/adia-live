@@ -146,6 +146,10 @@
   function esc(s) {
     return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
+  function nomFichier(titre, ext) {
+    const base = (titre || "document").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "document";
+    return "adia-" + base + "." + ext;
+  }
   function heure(iso) {
     return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   }
@@ -153,18 +157,19 @@
     const a = document.createElement("article");
     a.dataset.id = c.id;
     let contenu = "";
+    const vue = `page/?c=${encodeURIComponent(c.code)}`;
     const legende = c.body ? `<p class="legende">${esc(c.body)}</p>` : "";
     if (c.kind === "texte") {
       contenu = `<div class="texte">${esc(c.body)}</div>`;
     } else if (c.kind === "pdf") {
       contenu = `${legende}<div class="actions">
-        <a class="bouton" href="${esc(c.file_url)}" target="_blank" rel="noopener">Ouvrir le PDF</a>
-        <a class="bouton second" href="${esc(c.file_url)}?download=" rel="noopener">Télécharger</a></div>`;
+        <a class="bouton" href="${vue}">Ouvrir le PDF</a>
+        <a class="bouton second" href="${esc(c.file_url)}?download=${encodeURIComponent(nomFichier(c.title, "pdf"))}" rel="noopener">Télécharger</a></div>`;
     } else if (c.kind === "image") {
-      contenu = `${legende}<a href="${esc(c.file_url)}" target="_blank" rel="noopener"><img class="apercu" src="${esc(c.file_url)}" alt="${esc(c.title)}" loading="lazy"></a>
-        <div class="actions"><a class="bouton second" href="${esc(c.file_url)}" target="_blank" rel="noopener">Voir en grand</a></div>`;
+      contenu = `${legende}<a href="${vue}"><img class="apercu" src="${esc(c.file_url)}" alt="${esc(c.title)}" loading="lazy"></a>
+        <div class="actions"><a class="bouton second" href="${vue}">Voir en grand</a></div>`;
     } else if (c.kind === "page") {
-      const lien = `page/?u=${encodeURIComponent(c.file_url)}&t=${encodeURIComponent(c.title)}`;
+      const lien = vue;
       contenu = `${legende}<div class="actions"><a class="bouton" href="${esc(lien)}">Ouvrir la page</a></div>`;
     }
     a.innerHTML = `<span class="heure">${heure(c.created_at)}</span><h2>${esc(c.title)}</h2>${contenu}`;
@@ -178,7 +183,7 @@
   }
   async function charger() {
     try {
-      const url = `${SUPABASE_URL}/rest/v1/live_cards?select=id,created_at,title,kind,body,file_url&event=eq.${EVENT}&order=created_at.desc`;
+      const url = `${SUPABASE_URL}/rest/v1/live_cards?select=id,code,created_at,title,kind,body,file_url&event=eq.${EVENT}&order=created_at.desc`;
       const r = await fetch(url, { headers: { apikey: SUPABASE_KEY }, cache: "no-store" });
       if (!r.ok) throw new Error(r.status);
       const cartes = await r.json();

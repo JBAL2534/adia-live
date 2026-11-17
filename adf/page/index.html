@@ -4,42 +4,103 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>ADIA · Page de démonstration</title>
+<title>ADIA · Démonstration</title>
 <link rel="icon" href="../../logo.jpg">
 <style>
-  :root { color-scheme: dark; --or: #D4A93C; --doux: #A39A84; }
+  :root { color-scheme: dark; --or: #D4A93C; --or-clair: #F0D27C; --doux: #A39A84; --filet: #3A2F15; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: #000; color: #ECE5D3; font: 500 1rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
   body { display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
-  .barre { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-bottom: 1px solid #3A2F15; flex: none; }
-  .barre a { color: var(--or); text-decoration: none; font-weight: 600; min-height: 2.5rem; display: inline-flex; align-items: center; }
-  .barre span { color: var(--doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  iframe { flex: 1; width: 100%; border: 0; background: #fff; }
-  .message { padding: 2rem 1.25rem; color: var(--doux); text-align: center; }
+  .barre { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 1rem; border-bottom: 1px solid var(--filet); flex: none; }
+  .barre a { color: var(--or); text-decoration: none; font-weight: 600; min-height: 2.5rem; display: inline-flex; align-items: center; white-space: nowrap; }
+  .barre .titre { flex: 1; min-width: 0; color: var(--doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .barre .dl { border: 1px solid var(--or); border-radius: 999px; padding: 0 0.9rem; min-height: 2.2rem; color: var(--or-clair); font-size: 0.9rem; }
+  .barre a:focus-visible { outline: 2px solid var(--or-clair); outline-offset: 2px; }
+  #vue { flex: 1; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; }
+  #vue.pdf, #vue.image { padding: 0.75rem; padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)); }
+  #vue canvas, #vue img { display: block; width: 100%; max-width: 60rem; height: auto; margin: 0 auto 0.75rem; background: #fff; border-radius: 0.35rem; }
+  #vue img { background: #0a0a0a; }
+  iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+  .message { padding: 2rem 1.25rem; color: var(--doux); text-align: center; margin: 0; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
-  <div class="barre"><a id="retour" href="/">‹ Retour au direct</a><span id="titre"></span></div>
-  <p class="message" id="message">Chargement de la page…</p>
+  <div class="barre">
+    <a href="../">‹ Retour au direct</a>
+    <span class="titre" id="titre"></span>
+    <a class="dl" id="dl" hidden>Télécharger</a>
+  </div>
+  <div id="vue"><p class="message" id="message">Chargement…</p></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-  const STOCKAGE = "https://etzgauwhqlmzbjyldpzn.supabase.co/storage/v1/object/public/live-files/";
-  const p = new URLSearchParams(location.search);
-  const u = p.get("u") || "";
-  document.getElementById("retour").href = "../";
-  document.getElementById("titre").textContent = p.get("t") || "";
-  if (p.get("t")) document.title = "ADIA · " + p.get("t");
+  const SB = "https://etzgauwhqlmzbjyldpzn.supabase.co";
+  const KEY = "sb_publishable_VydL-ZMbCoJ8CE_mKClNmA_usTJyAxU";
+  const STOCKAGE = SB + "/storage/v1/object/public/live-files/";
+  const code = (new URLSearchParams(location.search).get("c") || "").toLowerCase().replace(/[^a-f0-9]/g, "").slice(0, 8);
+  const vue = document.getElementById("vue");
   const msg = document.getElementById("message");
-  if (!u.startsWith(STOCKAGE)) {
-    msg.textContent = "Cette page n’est pas disponible.";
-  } else {
-    fetch(u, { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.text(); }).then(html => {
-      const f = document.createElement("iframe");
-      f.setAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms");
-      f.setAttribute("title", p.get("t") || "Page de démonstration");
-      f.srcdoc = html;
-      msg.replaceWith(f);
-    }).catch(() => { msg.textContent = "La page n’a pas pu être chargée. Revenez au direct et réessayez."; });
+  function echec(t) { msg.textContent = t; if (!msg.isConnected) vue.prepend(msg); }
+  function nomFichier(titre, ext) {
+    const base = (titre || "document").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "document";
+    return "adia-" + base + "." + ext;
   }
+  async function afficherPdf(url) {
+    if (!window.pdfjsLib) throw new Error("pdf");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    const pdf = await pdfjsLib.getDocument(url).promise;
+    vue.className = "pdf";
+    const largeur = Math.min(vue.clientWidth - 24, 960);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    msg.remove();
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const page = await pdf.getPage(n);
+      const base = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: (largeur / base.width) * dpr });
+      const canvas = document.createElement("canvas");
+      canvas.width = vp.width; canvas.height = vp.height;
+      canvas.setAttribute("role", "img");
+      canvas.setAttribute("aria-label", "Page " + n + " sur " + pdf.numPages);
+      vue.appendChild(canvas);
+      await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+    }
+  }
+  async function demarrer() {
+    if (code.length !== 8) return echec("Ce document n’est pas disponible.");
+    let carte;
+    try {
+      const r = await fetch(`${SB}/rest/v1/live_cards?select=title,kind,file_url&code=eq.${code}&limit=1`, { headers: { apikey: KEY }, cache: "no-store" });
+      if (!r.ok) throw 0;
+      carte = (await r.json())[0];
+    } catch { return echec("Connexion impossible. Revenez au direct et réessayez."); }
+    if (!carte || !carte.file_url || !carte.file_url.startsWith(STOCKAGE)) return echec("Ce document n’est plus disponible.");
+    document.getElementById("titre").textContent = carte.title;
+    document.title = "ADIA · " + carte.title;
+    const dl = document.getElementById("dl");
+    try {
+      if (carte.kind === "page") {
+        const html = await (await fetch(carte.file_url, { cache: "no-store" })).text();
+        const f = document.createElement("iframe");
+        f.setAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms");
+        f.setAttribute("title", carte.title);
+        f.srcdoc = html;
+        vue.replaceChildren(f);
+      } else if (carte.kind === "pdf") {
+        dl.href = carte.file_url + "?download=" + encodeURIComponent(nomFichier(carte.title, "pdf"));
+        dl.hidden = false;
+        await afficherPdf(carte.file_url);
+      } else if (carte.kind === "image") {
+        const ext = (carte.file_url.split(".").pop() || "jpg").toLowerCase();
+        dl.href = carte.file_url + "?download=" + encodeURIComponent(nomFichier(carte.title, ext));
+        dl.hidden = false;
+        const img = new Image();
+        img.alt = carte.title; img.src = carte.file_url;
+        vue.className = "image";
+        vue.replaceChildren(img);
+      } else echec("Ce document n’est pas disponible.");
+    } catch { echec("Le document n’a pas pu être affiché. Utilisez le bouton Télécharger."); }
+  }
+  demarrer();
 </script>
 </body>
 </html>
