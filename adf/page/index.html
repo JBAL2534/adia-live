@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ADIA · Page de démonstration</title>
+<link rel="icon" href="../../logo.jpg">
+<style>
+  :root { color-scheme: dark; --or: #D4A93C; --doux: #A39A84; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: #000; color: #ECE5D3; font: 500 1rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
+  .barre { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-bottom: 1px solid #3A2F15; flex: none; }
+  .barre a { color: var(--or); text-decoration: none; font-weight: 600; min-height: 2.5rem; display: inline-flex; align-items: center; }
+  .barre span { color: var(--doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+  .message { padding: 2rem 1.25rem; color: var(--doux); text-align: center; }
+</style>
+</head>
+<body>
+  <div class="barre"><a id="retour" href="/">‹ Retour au direct</a><span id="titre"></span></div>
+  <p class="message" id="message">Chargement de la page…</p>
+<script>
+  const STOCKAGE = "https://etzgauwhqlmzbjyldpzn.supabase.co/storage/v1/object/public/live-files/";
+  const p = new URLSearchParams(location.search);
+  const u = p.get("u") || "";
+  document.getElementById("retour").href = "../";
+  document.getElementById("titre").textContent = p.get("t") || "";
+  if (p.get("t")) document.title = "ADIA · " + p.get("t");
+  const msg = document.getElementById("message");
+  if (!u.startsWith(STOCKAGE)) {
+    msg.textContent = "Cette page n’est pas disponible.";
+  } else {
+    fetch(u, { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.text(); }).then(html => {
+      const f = document.createElement("iframe");
+      f.setAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms");
+      f.setAttribute("title", p.get("t") || "Page de démonstration");
+      f.srcdoc = html;
+      msg.replaceWith(f);
+    }).catch(() => { msg.textContent = "La page n’a pas pu être chargée. Revenez au direct et réessayez."; });
+  }
+</script>
+</body>
+</html>
