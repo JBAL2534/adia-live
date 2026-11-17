@@ -46,7 +46,15 @@
   .etat.hors { color: var(--doux); }
   @keyframes pouls { 0% { box-shadow: 0 0 0 0 rgba(212,169,60,.55); } 70% { box-shadow: 0 0 0 0.6rem rgba(212,169,60,0); } 100% { box-shadow: 0 0 0 0 rgba(212,169,60,0); } }
   h1 { font: 600 clamp(1.5rem, 6vw, 2rem)/1.2 var(--titre); color: var(--or); margin: 0.75rem 0 0.25rem; letter-spacing: 0.02em; }
-  .sous { color: var(--doux); margin: 0; font-size: 0.95rem; }
+  h1 { text-wrap: balance; }
+  .congres { display: flex; align-items: center; justify-content: center; gap: 0.9rem; margin: 0.5rem auto 1.4rem; max-width: 20rem;
+    font: 600 1.15rem/1 var(--titre); letter-spacing: 0.22em; color: var(--or-clair); }
+  .congres::before, .congres::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--or)); }
+  .congres::after { background: linear-gradient(270deg, transparent, var(--or)); }
+  .congres span { padding-left: 0.22em; }
+  .sous { color: var(--doux); margin: 0 0 0.35rem; font-size: 0.9rem; }
+  .orateurs { margin: 0; font-weight: 500; font-size: 1.05rem; line-height: 1.5; color: var(--texte); }
+  .orateurs span { display: block; white-space: nowrap; }
 
   .vide {
     border: 1px dashed var(--filet); border-radius: 1rem; padding: 2rem 1.25rem;
@@ -98,7 +106,9 @@
   <header>
     <img src="../logo.jpg" alt="ADIA, Académie Dentaire d’Intelligence Artificielle" width="320" height="289">
     <h1>Démonstrations en direct</h1>
-    <p class="sous" id="sous">Conférence du Dr Jacques BITTON et du Dr Laurent ALLOUCHE</p>
+    <p class="congres"><span>ADF 2026</span></p>
+    <p class="sous" id="sous">Une conférence de</p>
+    <p class="orateurs"><span>Dr Jacques BITTON</span><span>Dr Laurent ALLOUCHE</span></p>
     <div class="etat" id="etat" role="status"><span class="pastille" aria-hidden="true"></span><span id="etat-texte">Connexion…</span></div>
   </header>
 
