@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ADIA · Démonstrations en direct</title>
+<link rel="icon" href="../logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --noir: #000000;
+    --surface: #100E09;
+    --filet: #3A2F15;
+    --or: #D4A93C;
+    --or-clair: #F0D27C;
+    --texte: #ECE5D3;
+    --doux: #A39A84;
+    --titre: "Cinzel", "Trajan Pro", Georgia, serif;
+    --corps: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--noir); color: var(--texte);
+    font: 400 1.0625rem/1.55 var(--corps);
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--noir); }
+  main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+
+  header { text-align: center; padding: 0.5rem 0 1.75rem; }
+  header .logos { display: flex; align-items: center; justify-content: center; gap: clamp(0.9rem, 4.5vw, 1.6rem); }
+  header .logos img { display: block; width: auto; }
+  header .logo-adia { height: min(13.5rem, 56vw); }
+  header .logo-adf { height: min(7.75rem, 29.5vw); }
+  .etat {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    margin-top: 1.25rem; color: var(--or-clair); font-weight: 500; font-size: 0.95rem;
+  }
+  .pastille { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--or); box-shadow: 0 0 0 0 rgba(212,169,60,.6); animation: pouls 2s infinite; }
+  .etat.hors .pastille { background: var(--doux); animation: none; }
+  .etat.hors { color: var(--doux); }
+  @keyframes pouls { 0% { box-shadow: 0 0 0 0 rgba(212,169,60,.55); } 70% { box-shadow: 0 0 0 0.6rem rgba(212,169,60,0); } 100% { box-shadow: 0 0 0 0 rgba(212,169,60,0); } }
+  h1 { font: 600 clamp(1.5rem, 6vw, 2rem)/1.2 var(--titre); color: var(--or); margin: 0.75rem 0 0.25rem; letter-spacing: 0.02em; }
+  h1 { text-wrap: balance; }
+  .congres { display: flex; align-items: center; justify-content: center; gap: 0.9rem; margin: 0.5rem auto 1.4rem; max-width: 24rem; white-space: nowrap;
+    font: 600 1.15rem/1 var(--titre); letter-spacing: 0.18em; color: var(--or-clair); }
+  .congres::before, .congres::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--or)); }
+  .congres::after { background: linear-gradient(270deg, transparent, var(--or)); }
+  .congres span { padding-left: 0.18em; }
+  .sous { color: var(--doux); margin: 0 0 0.35rem; font-size: 0.9rem; }
+  .orateurs { margin: 0; font-weight: 500; font-size: 1.05rem; line-height: 1.5; color: var(--texte); }
+  .orateurs span { display: block; white-space: nowrap; }
+
+  .vide {
+    border: 1px dashed var(--filet); border-radius: 1rem; padding: 2rem 1.25rem;
+    text-align: center; color: var(--doux);
+  }
+  .vide strong { display: block; color: var(--texte); font-weight: 500; margin-bottom: 0.35rem; }
+
+  #fil { display: grid; gap: 1.25rem; }
+  article {
+    background: var(--surface); border: 1px solid var(--filet); border-radius: 1rem;
+    padding: 1.25rem; overflow: hidden;
+  }
+  article.nouvelle { animation: arrivee 2.4s ease-out; }
+  @keyframes arrivee { 0% { border-color: var(--or-clair); box-shadow: 0 0 1.75rem rgba(212,169,60,.45); } 100% { border-color: var(--filet); box-shadow: none; } }
+  .heure { color: var(--doux); font-size: 0.85rem; }
+  article h2 { font: 600 1.25rem/1.3 var(--titre); color: var(--or-clair); margin: 0.2rem 0 0.85rem; }
+  .texte { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .texte + .actions, .apercu + .actions { margin-top: 1rem; }
+  .apercu { display: block; width: 100%; height: auto; border-radius: 0.6rem; border: 1px solid var(--filet); background: #0a0a0a; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .bouton {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 2.9rem;
+    padding: 0.6rem 1.15rem; border-radius: 999px; font: 600 1rem/1 var(--corps);
+    text-decoration: none; border: 1px solid var(--or); color: var(--noir); background: var(--or);
+  }
+  .bouton.second { background: transparent; color: var(--or-clair); }
+  .bouton:focus-visible { outline: 2px solid var(--or-clair); outline-offset: 3px; }
+  .legende { color: var(--doux); font-size: 0.95rem; margin: 0 0 0.9rem; white-space: pre-wrap; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 150%);
+    background: var(--or); color: var(--noir); font-weight: 600; padding: 0.75rem 1.2rem; border-radius: 999px;
+    transition: transform .35s ease; z-index: 20; white-space: nowrap;
+  }
+  .toast.visible { transform: translate(-50%, 0); }
+
+  footer { margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--filet); text-align: center; color: var(--doux); font-size: 0.95rem; }
+  footer p { margin: 0 0 1rem; }
+  footer .devise span { display: block; white-space: nowrap; }
+  footer .nom { font: 600 1.05rem/1.3 var(--titre); color: var(--or); margin-bottom: 0.25rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pastille, article.nouvelle { animation: none; }
+    .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logos">
+      <img class="logo-adia" src="../logo.jpg" alt="ADIA, Académie Dentaire d’Intelligence Artificielle" width="320" height="289">
+    </div>
+    <h1>Démonstrations en direct</h1>
+    <p class="congres"><span>SAPO GREFFES</span></p>
+    <p class="sous" id="sous">Une conférence du</p>
+    <p class="orateurs"><span>Dr Jacques BITTON</span></p>
+    <div class="etat" id="etat" role="status"><span class="pastille" aria-hidden="true"></span><span id="etat-texte">Connexion…</span></div>
+  </header>
+
+  <section aria-live="polite">
+    <div id="fil"></div>
+    <div class="vide" id="vide" hidden>
+      <strong>Les démonstrations apparaîtront ici au fil de la conférence.</strong>
+      Gardez cette page ouverte : elle se met à jour toute seule.
+    </div>
+  </section>
+
+  <footer>
+    <p class="nom">ADIA</p>
+    <p class="devise"><span>Académie Dentaire</span><span>d’Intelligence Artificielle</span></p>
+    <a class="bouton second" href="https://adia-academie.ai" target="_blank" rel="noopener">Découvrir adia-academie.ai</a>
+  </footer>
+</main>
+<div class="toast" id="toast" role="status">Nouvelle démonstration</div>
+
+<script>
+  const SUPABASE_URL = "https://etzgauwhqlmzbjyldpzn.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_VydL-ZMbCoJ8CE_mKClNmA_usTJyAxU";
+  const EVENT = (() => { const s = location.pathname.split("/").filter(Boolean); while (s.length && ["admin","page","index.html"].includes(s[s.length-1])) s.pop(); return (s.pop() || "adf").toLowerCase().replace(/[^a-z0-9-]/g, "") || "adf"; })();
+  const INTERVALLE = 5000;
+
+  const fil = document.getElementById("fil");
+  const vide = document.getElementById("vide");
+  const etat = document.getElementById("etat");
+  const etatTexte = document.getElementById("etat-texte");
+  const toast = document.getElementById("toast");
+  let connus = null;
+  let minuteur = null;
+
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function nomFichier(titre, ext) {
+    const base = (titre || "document").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "document";
+    return "adia-" + base + "." + ext;
+  }
+  function heure(iso) {
+    return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  }
+  function rendu(c) {
+    const a = document.createElement("article");
+    a.dataset.id = c.id;
+    let contenu = "";
+    const vue = `page/?c=${encodeURIComponent(c.code)}`;
+    const legende = c.body ? `<p class="legende">${esc(c.body)}</p>` : "";
+    if (c.kind === "texte") {
+      contenu = `<div class="texte">${esc(c.body)}</div>`;
+    } else if (c.kind === "pdf") {
+      contenu = `${legende}<div class="actions">
+        <a class="bouton" href="${vue}">Ouvrir le PDF</a>
+        <a class="bouton second" href="${esc(c.file_url)}?download=${encodeURIComponent(nomFichier(c.title, "pdf"))}" rel="noopener">Télécharger</a></div>`;
+    } else if (c.kind === "image") {
+      contenu = `${legende}<a href="${vue}"><img class="apercu" src="${esc(c.file_url)}" alt="${esc(c.title)}" loading="lazy"></a>
+        <div class="actions"><a class="bouton second" href="${vue}">Voir en grand</a></div>`;
+    } else if (c.kind === "page") {
+      const lien = vue;
+      contenu = `${legende}<div class="actions"><a class="bouton" href="${esc(lien)}">Ouvrir la page</a></div>`;
+    }
+    a.innerHTML = `<span class="heure">${heure(c.created_at)}</span><h2>${esc(c.title)}</h2>${contenu}`;
+    return a;
+  }
+  function signaler(texte) {
+    toast.textContent = texte;
+    toast.classList.add("visible");
+    setTimeout(() => toast.classList.remove("visible"), 3000);
+    if (navigator.vibrate) navigator.vibrate(60);
+  }
+  async function charger() {
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/live_cards?select=id,code,created_at,title,kind,body,file_url&event=eq.${EVENT}&order=created_at.desc`;
+      const r = await fetch(url, { headers: { apikey: SUPABASE_KEY }, cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const cartes = await r.json();
+      etat.classList.remove("hors");
+      etatTexte.textContent = "En direct";
+      const ids = cartes.map(c => c.id);
+      const premiere = connus === null;
+      const nouvelles = premiere ? [] : ids.filter(id => !connus.has(id));
+      if (premiere || nouvelles.length || ids.length !== connus.size) {
+        fil.replaceChildren(...cartes.map(c => {
+          const el = rendu(c);
+          if (nouvelles.includes(c.id)) el.classList.add("nouvelle");
+          return el;
+        }));
+      }
+      if (nouvelles.length) signaler(nouvelles.length > 1 ? "Nouvelles démonstrations" : "Nouvelle démonstration");
+      connus = new Set(ids);
+      vide.hidden = cartes.length > 0;
+    } catch (e) {
+      etat.classList.add("hors");
+      etatTexte.textContent = "Connexion interrompue, nouvelle tentative…";
+    }
+  }
+  function demarrer() {
+    clearInterval(minuteur);
+    charger();
+    minuteur = setInterval(charger, INTERVALLE);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clearInterval(minuteur); else demarrer();
+  });
+  demarrer();
+</script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<title>ADIA · Régie du direct</title>
+<link rel="icon" href="../../logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --noir: #000; --surface: #100E09; --champ: #17140D; --filet: #3A2F15;
+    --or: #D4A93C; --or-clair: #F0D27C; --texte: #ECE5D3; --doux: #A39A84; --alerte: #E58C6B;
+    --titre: "Cinzel", Georgia, serif; --corps: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  body { margin: 0; background: var(--noir); color: var(--texte); font: 400 1rem/1.5 var(--corps); }
+  main { max-width: 68rem; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .entete { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .entete img { height: 3.25rem; width: auto; }
+  .entete .gauche { display: flex; align-items: center; gap: 1rem; }
+  h1 { font: 600 1.4rem/1.2 var(--titre); color: var(--or); margin: 0; }
+  .evt { color: var(--doux); font-size: 0.9rem; }
+  h2 { font: 600 1.05rem/1.3 var(--titre); color: var(--or-clair); margin: 0 0 1rem; }
+  .bloc { background: var(--surface); border: 1px solid var(--filet); border-radius: 1rem; padding: 1.25rem; }
+  .grille { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+  @media (max-width: 52rem) { .grille { grid-template-columns: 1fr; } }
+
+  label { display: block; font-weight: 600; margin: 0 0 0.4rem; }
+  .champ { margin-bottom: 1.1rem; }
+  input[type=text], input[type=password], textarea {
+    width: 100%; background: var(--champ); color: var(--texte); border: 1px solid var(--filet); border-radius: 0.6rem;
+    padding: 0.7rem 0.8rem; font: inherit;
+  }
+  textarea { min-height: 7rem; resize: vertical; }
+  input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--or-clair); outline-offset: 2px; }
+
+  .modeles { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.6rem; }
+  .modele { background: transparent; color: var(--doux); border: 1px solid var(--filet); border-radius: 999px; padding: 0.35rem 0.8rem; font: 500 0.88rem/1.2 var(--corps); cursor: pointer; }
+  .modele:hover { color: var(--or-clair); border-color: var(--or); }
+
+  .types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+  .types button { background: var(--champ); color: var(--doux); border: 1px solid var(--filet); border-radius: 0.6rem; padding: 0.7rem 0.4rem; font: 600 0.95rem/1.2 var(--corps); cursor: pointer; }
+  .types button[aria-pressed=true] { background: var(--or); color: var(--noir); border-color: var(--or); }
+
+  .depot {
+    border: 2px dashed var(--filet); border-radius: 0.9rem; padding: 1.5rem 1rem; text-align: center; color: var(--doux); cursor: pointer;
+  }
+  .depot.survol { border-color: var(--or); color: var(--or-clair); background: rgba(212,169,60,.06); }
+  .depot strong { display: block; color: var(--texte); margin-bottom: 0.2rem; }
+  .depot .fichier { color: var(--or-clair); font-weight: 600; margin-top: 0.5rem; overflow-wrap: anywhere; }
+
+  .bouton { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 3rem; padding: 0.7rem 1.3rem; border-radius: 999px;
+    background: var(--or); color: var(--noir); border: 1px solid var(--or); font: 600 1.05rem/1 var(--corps); cursor: pointer; text-decoration: none; }
+  .bouton.large { width: 100%; font-size: 1.15rem; min-height: 3.4rem; }
+  .bouton.second { background: transparent; color: var(--or-clair); }
+  .bouton:disabled { opacity: .55; cursor: wait; }
+  .petit { background: transparent; border: 1px solid var(--filet); color: var(--doux); border-radius: 999px; padding: 0.35rem 0.75rem; font: 500 0.85rem/1.2 var(--corps); cursor: pointer; }
+  .petit:hover { color: var(--texte); border-color: var(--doux); }
+  .petit.danger:hover { color: var(--alerte); border-color: var(--alerte); }
+
+  .liste { display: grid; gap: 0.6rem; }
+  .ligne { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem 0.75rem; align-items: center; padding: 0.75rem 0.85rem; border: 1px solid var(--filet); border-radius: 0.7rem; background: var(--champ); }
+  .ligne.masquee { opacity: .5; }
+  .ligne .t { font-weight: 600; overflow-wrap: anywhere; }
+  .ligne .m { color: var(--doux); font-size: 0.85rem; }
+  .ligne .act { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+  .rien { color: var(--doux); }
+
+  .acces { max-width: 26rem; margin: 3rem auto; }
+  .acces p { color: var(--doux); }
+  .erreur { color: var(--alerte); min-height: 1.5em; margin: 0.6rem 0 0; }
+  .toast { position: fixed; left: 50%; bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 160%); background: var(--or); color: var(--noir);
+    font-weight: 600; padding: 0.8rem 1.3rem; border-radius: 999px; transition: transform .3s ease; z-index: 20; }
+  .toast.visible { transform: translate(-50%, 0); }
+  .toast.ko { background: var(--alerte); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="entete">
+    <div class="gauche">
+      <img src="../../logo.jpg" alt="ADIA" width="320" height="289">
+      <div><h1>Régie du direct</h1><div class="evt" id="evt"></div></div>
+    </div>
+    <div id="liens" hidden>
+      <a class="bouton second" id="voir" href="../" target="_blank" rel="noopener">Ouvrir la page publique</a>
+      <button class="petit" id="sortir" type="button">Se déconnecter</button>
+    </div>
+  </div>
+
+  <!-- Choix du code (premier lancement) -->
+  <section class="bloc acces" id="ecran-creation" hidden>
+    <h2>Choisissez votre code d’accès</h2>
+    <p>Ce code protège la régie : sans lui, personne ne peut publier sur la page du public. Au moins 8 caractères. Il ne pourra plus être changé depuis cette page.</p>
+    <form id="form-creation">
+      <div class="champ"><label for="c1">Code d’accès</label><input id="c1" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div class="champ"><label for="c2">Confirmez le code</label><input id="c2" type="password" autocomplete="new-password" minlength="8" required></div>
+      <button class="bouton large" type="submit">Enregistrer le code</button>
+      <p class="erreur" id="err-creation" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- Connexion -->
+  <section class="bloc acces" id="ecran-connexion" hidden>
+    <h2>Accès à la régie</h2>
+    <form id="form-connexion">
+      <div class="champ"><label for="code">Code d’accès</label><input id="code" type="password" autocomplete="current-password" required></div>
+      <button class="bouton large" type="submit">Entrer</button>
+      <p class="erreur" id="err-connexion" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- Régie -->
+  <div class="grille" id="ecran-regie" hidden>
+    <section class="bloc">
+      <h2>Publier une nouvelle carte</h2>
+      <form id="form-pub">
+        <div class="champ">
+          <label for="titre">Titre</label>
+          <input id="titre" type="text" maxlength="200" required placeholder="Ex. Compte-rendu de la panoramique">
+          <div class="modeles" id="modeles">
+            <button type="button" class="modele" data-t="Compte-rendu de la panoramique" data-k="pdf">Panoramique</button>
+            <button type="button" class="modele" data-t="Analyse des factures fournisseurs" data-k="pdf">Factures fournisseurs</button>
+            <button type="button" class="modele" data-t="Checklist des plateaux techniques" data-k="pdf">Checklist plateaux</button>
+            <button type="button" class="modele" data-t="Page web patient" data-k="page">Page patient</button>
+          </div>
+        </div>
+        <div class="champ">
+          <label id="lbl-type">Type</label>
+          <div class="types" role="group" aria-labelledby="lbl-type">
+            <button type="button" data-k="pdf" aria-pressed="true">PDF</button>
+            <button type="button" data-k="page" aria-pressed="false">Page web</button>
+            <button type="button" data-k="image" aria-pressed="false">Image</button>
+            <button type="button" data-k="texte" aria-pressed="false">Texte</button>
+          </div>
+        </div>
+        <div class="champ" id="zone-fichier">
+          <label for="fichier">Fichier</label>
+          <div class="depot" id="depot" tabindex="0" role="button" aria-describedby="depot-aide">
+            <strong id="depot-titre">Glissez le PDF ici</strong>
+            <span id="depot-aide">ou cliquez pour le choisir</span>
+            <div class="fichier" id="nom-fichier"></div>
+          </div>
+          <input id="fichier" type="file" hidden>
+        </div>
+        <div class="champ">
+          <label for="corps" id="lbl-corps">Légende (facultatif)</label>
+          <textarea id="corps" placeholder="Une phrase pour accompagner le document"></textarea>
+        </div>
+        <button class="bouton large" id="btn-pub" type="submit">Publier</button>
+        <p class="erreur" id="err-pub" role="alert"></p>
+      </form>
+    </section>
+
+    <section class="bloc">
+      <h2>Cartes publiées</h2>
+      <div class="liste" id="liste"><p class="rien">Aucune carte publiée pour l’instant.</p></div>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+  const FN = "https://etzgauwhqlmzbjyldpzn.supabase.co/functions/v1/live-admin";
+  const KEY = "sb_publishable_VydL-ZMbCoJ8CE_mKClNmA_usTJyAxU";
+  const EVENT = (() => { const s = location.pathname.split("/").filter(Boolean); while (s.length && ["admin","page","index.html"].includes(s[s.length-1])) s.pop(); return (s.pop() || "adf").toLowerCase().replace(/[^a-z0-9-]/g, "") || "adf"; })();
+  const $ = id => document.getElementById(id);
+  let code = sessionStorage.getItem("adia-live-code") || "";
+  let type = "pdf";
+  let fichier = null;
+
+  $("evt").textContent = "Événement : " + EVENT.toUpperCase() + "";
+  $("voir").href = "../";
+
+  function toast(t, ko) {
+    const el = $("toast"); el.textContent = t; el.classList.toggle("ko", !!ko); el.classList.add("visible");
+    setTimeout(() => el.classList.remove("visible"), 2600);
+  }
+  async function appel(action, champs = {}) {
+    const fd = new FormData();
+    fd.append("action", action);
+    if (code) fd.append("code", code);
+    fd.append("event", EVENT);
+    for (const [k, v] of Object.entries(champs)) if (v !== null && v !== undefined) fd.append(k, v);
+    const r = await fetch(FN, { method: "POST", body: fd, headers: { apikey: KEY } });
+    let data = {};
+    try { data = await r.json(); } catch {}
+    if (!r.ok) throw new Error(data.error || "Le serveur ne répond pas. Vérifiez la connexion.");
+    return data;
+  }
+  function montrer(ecran) {
+    for (const e of ["ecran-creation", "ecran-connexion", "ecran-regie"]) $(e).hidden = e !== ecran;
+    $("liens").hidden = ecran !== "ecran-regie";
+  }
+
+  async function init() {
+    try {
+      const s = await appel("status");
+      if (!s.configured) return montrer("ecran-creation");
+      if (code) {
+        try { await appel("login"); montrer("ecran-regie"); return rafraichir(); }
+        catch { code = ""; sessionStorage.removeItem("adia-live-code"); }
+      }
+      montrer("ecran-connexion"); $("code").focus();
+    } catch (e) {
+      montrer("ecran-connexion"); $("err-connexion").textContent = e.message;
+    }
+  }
+
+  $("form-creation").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const a = $("c1").value, b = $("c2").value;
+    if (a.length < 8) return $("err-creation").textContent = "Le code doit contenir au moins 8 caractères.";
+    if (a !== b) return $("err-creation").textContent = "Les deux codes ne sont pas identiques.";
+    try {
+      code = a; await appel("setup");
+      sessionStorage.setItem("adia-live-code", code);
+      montrer("ecran-regie"); rafraichir(); toast("Code enregistré");
+    } catch (e) { code = ""; $("err-creation").textContent = e.message; }
+  });
+
+  $("form-connexion").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    code = $("code").value;
+    try {
+      await appel("login");
+      sessionStorage.setItem("adia-live-code", code);
+      $("err-connexion").textContent = ""; montrer("ecran-regie"); rafraichir();
+    } catch (e) { code = ""; $("err-connexion").textContent = e.message; }
+  });
+
+  $("sortir").addEventListener("click", () => { sessionStorage.removeItem("adia-live-code"); code = ""; montrer("ecran-connexion"); });
+
+  // Type de carte
+  const ACCEPT = { pdf: "application/pdf,.pdf", page: ".html,.htm,text/html", image: "image/png,image/jpeg,image/webp" };
+  const LIBELLE = { pdf: "Glissez le PDF ici", page: "Glissez le fichier HTML ici", image: "Glissez l’image ici" };
+  function choisirType(k) {
+    type = k;
+    document.querySelectorAll(".types button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === k)));
+    $("zone-fichier").hidden = k === "texte";
+    $("fichier").accept = ACCEPT[k] || "";
+    $("depot-titre").textContent = LIBELLE[k] || "";
+    $("lbl-corps").textContent = k === "texte" ? "Texte" : "Légende (facultatif)";
+    $("corps").placeholder = k === "texte" ? "Collez ici le texte à afficher" : "Une phrase pour accompagner le document";
+    if (fichier && !fichierCompatible(fichier)) definirFichier(null);
+  }
+  function fichierCompatible(f) {
+    const n = f.name.toLowerCase();
+    if (type === "pdf") return n.endsWith(".pdf") || f.type === "application/pdf";
+    if (type === "page") return n.endsWith(".html") || n.endsWith(".htm");
+    if (type === "image") return /\.(png|jpe?g|webp)$/.test(n);
+    return false;
+  }
+  function definirFichier(f) {
+    fichier = f;
+    $("nom-fichier").textContent = f ? f.name + "  (" + (f.size / 1048576).toFixed(1) + " Mo)" : "";
+  }
+  document.querySelectorAll(".types button").forEach(b => b.addEventListener("click", () => choisirType(b.dataset.k)));
+  document.querySelectorAll(".modele").forEach(b => b.addEventListener("click", () => { $("titre").value = b.dataset.t; choisirType(b.dataset.k); }));
+
+  const depot = $("depot");
+  depot.addEventListener("click", () => $("fichier").click());
+  depot.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("fichier").click(); } });
+  $("fichier").addEventListener("change", e => { const f = e.target.files[0]; if (f) prendre(f); e.target.value = ""; });
+  ["dragenter", "dragover"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.add("survol"); }));
+  ["dragleave", "drop"].forEach(t => depot.addEventListener(t, e => { e.preventDefault(); depot.classList.remove("survol"); }));
+  depot.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) prendre(f); });
+  // Glisser n'importe où dans la page
+  window.addEventListener("dragover", e => e.preventDefault());
+  window.addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer?.files?.[0]; if (f && !$("ecran-regie").hidden) prendre(f); });
+  function prendre(f) {
+    const n = f.name.toLowerCase();
+    if (type === "texte" || !fichierCompatible(f)) {
+      if (n.endsWith(".pdf")) choisirType("pdf");
+      else if (n.endsWith(".html") || n.endsWith(".htm")) choisirType("page");
+      else if (/\.(png|jpe?g|webp)$/.test(n)) choisirType("image");
+      else return toast("Format non pris en charge : PDF, HTML, PNG, JPG ou WEBP.", true);
+    }
+    if (f.size > 25 * 1048576) return toast("Fichier trop lourd : 25 Mo maximum.", true);
+    definirFichier(f);
+    if (!$("titre").value.trim()) $("titre").value = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
+  }
+
+  $("form-pub").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    $("err-pub").textContent = "";
+    const titre = $("titre").value.trim();
+    const corps = $("corps").value;
+    if (!titre) return $("err-pub").textContent = "Ajoutez un titre.";
+    if (type === "texte" && !corps.trim()) return $("err-pub").textContent = "Ajoutez un texte.";
+    if (type !== "texte" && !fichier) return $("err-pub").textContent = "Ajoutez un fichier.";
+    const btn = $("btn-pub"); btn.disabled = true; btn.textContent = "Publication…";
+    try {
+      await appel("publish", { title: titre, kind: type, body: corps, file: type !== "texte" ? fichier : null });
+      toast("Publiée");
+      $("titre").value = ""; $("corps").value = ""; definirFichier(null);
+      rafraichir();
+    } catch (e) { $("err-pub").textContent = e.message; toast("Publication impossible", true); }
+    finally { btn.disabled = false; btn.textContent = "Publier"; }
+  });
+
+  function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  const NOM_TYPE = { pdf: "PDF", page: "Page web", image: "Image", texte: "Texte" };
+  async function rafraichir() {
+    try {
+      const { cards } = await appel("list");
+      const l = $("liste");
+      if (!cards.length) { l.innerHTML = '<p class="rien">Aucune carte publiée pour l’instant.</p>'; return; }
+      l.innerHTML = cards.map(c => `
+        <div class="ligne ${c.hidden ? "masquee" : ""}">
+          <div><div class="t">${esc(c.title)}</div>
+            <div class="m">${NOM_TYPE[c.kind] || c.kind}, ${new Date(c.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}${c.hidden ? ", masquée" : ""}</div></div>
+          <div class="act">
+            <button class="petit" data-a="${c.hidden ? "show" : "hide"}" data-id="${c.id}">${c.hidden ? "Afficher" : "Masquer"}</button>
+            <button class="petit danger" data-a="delete" data-id="${c.id}">Supprimer</button>
+          </div>
+        </div>`).join("");
+    } catch (e) { toast(e.message, true); }
+  }
+  $("liste").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-a]"); if (!b) return;
+    if (b.dataset.a === "delete" && !confirm("Supprimer définitivement cette carte et son fichier ?")) return;
+    try {
+      await appel(b.dataset.a, { id: b.dataset.id });
+      toast(b.dataset.a === "delete" ? "Supprimée" : b.dataset.a === "hide" ? "Masquée" : "Affichée");
+      rafraichir();
+    } catch (err) { toast(err.message, true); }
+  });
+
+  init();
+</script>
+</body>
+</html>
