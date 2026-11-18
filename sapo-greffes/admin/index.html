@@ -27,6 +27,11 @@
   .entete .gauche { display: flex; align-items: center; gap: 1rem; }
   h1 { font: 600 1.4rem/1.2 var(--titre); color: var(--or); margin: 0; }
   .evt { color: var(--doux); font-size: 0.9rem; }
+  .confs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: -0.5rem 0 1.5rem; }
+  .confs span { color: var(--doux); font-size: 0.9rem; margin-right: 0.25rem; }
+  .confs a { padding: 0.5rem 0.95rem; border-radius: 999px; border: 1px solid var(--filet); color: var(--texte); text-decoration: none; font-weight: 600; font-size: 0.92rem; }
+  .confs a[aria-current="page"] { background: var(--or); border-color: var(--or); color: var(--noir); }
+  .confs a:focus-visible { outline: 2px solid var(--or-clair); outline-offset: 3px; }
   h2 { font: 600 1.05rem/1.3 var(--titre); color: var(--or-clair); margin: 0 0 1rem; }
   .bloc { background: var(--surface); border: 1px solid var(--filet); border-radius: 1rem; padding: 1.25rem; }
   .grille { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
@@ -95,6 +100,12 @@
       <button class="petit" id="sortir" type="button">Se déconnecter</button>
     </div>
   </div>
+  <nav class="confs" id="confs" aria-label="Conférence pilotée" hidden>
+    <span>Conférence :</span>
+    <a href="../../sapo-implant/admin/" data-e="sapo-implant">SAPO IMPLANT · 20/11</a>
+    <a href="../../adf/admin/" data-e="adf">ADF 2026</a>
+    <a href="../../sapo-greffes/admin/" data-e="sapo-greffes">SAPO GREFFES · 02/12</a>
+  </nav>
 
   <!-- Choix du code (premier lancement) -->
   <section class="bloc acces" id="ecran-creation" hidden>
@@ -177,8 +188,9 @@
   let type = "pdf";
   let fichier = null;
 
-  $("evt").textContent = "Événement : " + EVENT.toUpperCase() + "";
+  $("evt").textContent = "Événement : " + EVENT.toUpperCase().replace(/-/g, " ");
   $("voir").href = "../";
+  document.querySelectorAll("#confs a").forEach(l => { if (l.dataset.e === EVENT) l.setAttribute("aria-current", "page"); });
 
   function toast(t, ko) {
     const el = $("toast"); el.textContent = t; el.classList.toggle("ko", !!ko); el.classList.add("visible");
@@ -199,6 +211,7 @@
   function montrer(ecran) {
     for (const e of ["ecran-creation", "ecran-connexion", "ecran-regie"]) $(e).hidden = e !== ecran;
     $("liens").hidden = ecran !== "ecran-regie";
+    $("confs").hidden = ecran !== "ecran-regie";
   }
 
   async function init() {
