@@ -36,7 +36,10 @@
   main { max-width: 40rem; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
 
   header { text-align: center; padding: 0.5rem 0 1.75rem; }
-  header img { width: min(15rem, 62vw); height: auto; display: block; margin: 0 auto; }
+  header .logos { display: flex; align-items: center; justify-content: center; gap: clamp(0.9rem, 4.5vw, 1.6rem); }
+  header .logos img { display: block; width: auto; }
+  header .logo-adia { height: min(11rem, 42vw); }
+  header .logo-adf { height: min(7.75rem, 29.5vw); }
   .etat {
     display: inline-flex; align-items: center; gap: 0.55rem;
     margin-top: 1.25rem; color: var(--or-clair); font-weight: 500; font-size: 0.95rem;
@@ -105,7 +108,10 @@
 <body>
 <main>
   <header>
-    <img src="../logo.jpg" alt="ADIA, Académie Dentaire d’Intelligence Artificielle" width="320" height="289">
+    <div class="logos">
+      <img class="logo-adia" src="../logo.jpg" alt="ADIA, Académie Dentaire d’Intelligence Artificielle" width="320" height="289">
+      <img class="logo-adf" src="../adf-2026.jpg" alt="Congrès international ADF, 24 au 28 novembre 2026" width="534" height="711">
+    </div>
     <h1>Démonstrations en direct</h1>
     <p class="congres"><span>ADF 2026</span></p>
     <p class="sous" id="sous">Une conférence de</p>
