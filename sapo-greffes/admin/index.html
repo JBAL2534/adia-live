@@ -50,7 +50,7 @@
   .modele { background: transparent; color: var(--doux); border: 1px solid var(--filet); border-radius: 999px; padding: 0.35rem 0.8rem; font: 500 0.88rem/1.2 var(--corps); cursor: pointer; }
   .modele:hover { color: var(--or-clair); border-color: var(--or); }
 
-  .types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+  .types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
   .types button { background: var(--champ); color: var(--doux); border: 1px solid var(--filet); border-radius: 0.6rem; padding: 0.7rem 0.4rem; font: 600 0.95rem/1.2 var(--corps); cursor: pointer; }
   .types button[aria-pressed=true] { background: var(--or); color: var(--noir); border-color: var(--or); }
 
@@ -150,6 +150,8 @@
             <button type="button" data-k="pdf" aria-pressed="true">PDF</button>
             <button type="button" data-k="page" aria-pressed="false">Page web</button>
             <button type="button" data-k="image" aria-pressed="false">Image</button>
+            <button type="button" data-k="video" aria-pressed="false">Vidéo</button>
+            <button type="button" data-k="audio" aria-pressed="false">Audio</button>
             <button type="button" data-k="texte" aria-pressed="false">Texte</button>
           </div>
         </div>
@@ -253,8 +255,10 @@
   $("sortir").addEventListener("click", () => { sessionStorage.removeItem("adia-live-code"); code = ""; montrer("ecran-connexion"); });
 
   // Type de carte
-  const ACCEPT = { pdf: "application/pdf,.pdf", page: ".html,.htm,text/html", image: "image/png,image/jpeg,image/webp" };
-  const LIBELLE = { pdf: "Glissez le PDF ici", page: "Glissez le fichier HTML ici", image: "Glissez l’image ici" };
+  const ACCEPT = { pdf: "application/pdf,.pdf", page: ".html,.htm,text/html", image: "image/png,image/jpeg,image/webp", video: "video/mp4,.mp4,.m4v,.mov", audio: "audio/mpeg,audio/mp4,audio/wav,.mp3,.m4a,.aac,.wav" };
+  const RE_VIDEO = /\.(mp4|m4v|mov)$/, RE_AUDIO = /\.(mp3|m4a|aac|wav)$/;
+  const MEDIA = k => k === "video" || k === "audio";
+  const LIBELLE = { pdf: "Glissez le PDF ici", page: "Glissez le fichier HTML ici", image: "Glissez l’image ici", video: "Glissez la vidéo ici (MP4, 200 Mo maximum)", audio: "Glissez le fichier audio ici (MP3, M4A ou WAV)" };
   function choisirType(k) {
     type = k;
     document.querySelectorAll(".types button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === k)));
@@ -270,6 +274,8 @@
     if (type === "pdf") return n.endsWith(".pdf") || f.type === "application/pdf";
     if (type === "page") return n.endsWith(".html") || n.endsWith(".htm");
     if (type === "image") return /\.(png|jpe?g|webp)$/.test(n);
+    if (type === "video") return RE_VIDEO.test(n);
+    if (type === "audio") return RE_AUDIO.test(n);
     return false;
   }
   function definirFichier(f) {
@@ -295,9 +301,12 @@
       if (n.endsWith(".pdf")) choisirType("pdf");
       else if (n.endsWith(".html") || n.endsWith(".htm")) choisirType("page");
       else if (/\.(png|jpe?g|webp)$/.test(n)) choisirType("image");
-      else return toast("Format non pris en charge : PDF, HTML, PNG, JPG ou WEBP.", true);
+      else if (RE_VIDEO.test(n)) choisirType("video");
+      else if (RE_AUDIO.test(n)) choisirType("audio");
+      else return toast("Format non pris en charge : PDF, HTML, image, MP4, MP3, M4A ou WAV.", true);
     }
-    if (f.size > 25 * 1048576) return toast("Fichier trop lourd : 25 Mo maximum.", true);
+    const maxMo = MEDIA(type) ? 200 : 25;
+    if (f.size > maxMo * 1048576) return toast("Fichier trop lourd : " + maxMo + " Mo maximum.", true);
     definirFichier(f);
     if (!$("titre").value.trim()) $("titre").value = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
   }
@@ -312,7 +321,15 @@
     if (type !== "texte" && !fichier) return $("err-pub").textContent = "Ajoutez un fichier.";
     const btn = $("btn-pub"); btn.disabled = true; btn.textContent = "Publication…";
     try {
-      await appel("publish", { title: titre, kind: type, body: corps, file: type !== "texte" ? fichier : null });
+      if (MEDIA(type)) {
+        const ext = fichier.name.split(".").pop().toLowerCase();
+        const s = await appel("sign", { kind: type, ext, size: fichier.size });
+        await envoyerDirect(s.uploadUrl, fichier, s.contentType, p => { btn.textContent = "Envoi… " + p + " %"; });
+        btn.textContent = "Publication…";
+        await appel("publish", { title: titre, kind: type, body: corps, path: s.path });
+      } else {
+        await appel("publish", { title: titre, kind: type, body: corps, file: type !== "texte" ? fichier : null });
+      }
       toast("Publiée");
       $("titre").value = ""; $("corps").value = ""; definirFichier(null);
       rafraichir();
@@ -320,8 +337,26 @@
     finally { btn.disabled = false; btn.textContent = "Publier"; }
   });
 
+  // Envoi direct d’une vidéo ou d’un son vers le stockage, avec progression.
+  function envoyerDirect(url, f, contentType, progres) {
+    return new Promise((ok, ko) => {
+      const x = new XMLHttpRequest();
+      x.open("PUT", url);
+      x.setRequestHeader("content-type", contentType);
+      x.setRequestHeader("cache-control", "max-age=3600");
+      x.setRequestHeader("apikey", KEY);
+      x.upload.onprogress = e => { if (e.lengthComputable) progres(Math.round(e.loaded / e.total * 100)); };
+      x.onload = () => {
+        if (x.status >= 200 && x.status < 300) return ok();
+        let m = ""; try { m = JSON.parse(x.responseText).message || ""; } catch {}
+        ko(new Error(x.status === 413 || /size|large/i.test(m) ? "Fichier trop lourd pour le stockage. Compressez-le (720p) et réessayez." : "Envoi du fichier impossible. " + m));
+      };
+      x.onerror = () => ko(new Error("Envoi interrompu. Vérifiez la connexion et réessayez."));
+      x.send(f);
+    });
+  }
   function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-  const NOM_TYPE = { pdf: "PDF", page: "Page web", image: "Image", texte: "Texte" };
+  const NOM_TYPE = { pdf: "PDF", page: "Page web", image: "Image", texte: "Texte", video: "Vidéo", audio: "Audio" };
   async function rafraichir() {
     try {
       const { cards } = await appel("list");
