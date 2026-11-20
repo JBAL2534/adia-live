@@ -50,7 +50,7 @@
   .modele { background: transparent; color: var(--doux); border: 1px solid var(--filet); border-radius: 999px; padding: 0.35rem 0.8rem; font: 500 0.88rem/1.2 var(--corps); cursor: pointer; }
   .modele:hover { color: var(--or-clair); border-color: var(--or); }
 
-  .types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+  .types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
   .types button { background: var(--champ); color: var(--doux); border: 1px solid var(--filet); border-radius: 0.6rem; padding: 0.7rem 0.4rem; font: 600 0.95rem/1.2 var(--corps); cursor: pointer; }
   .types button[aria-pressed=true] { background: var(--or); color: var(--noir); border-color: var(--or); }
 
@@ -152,6 +152,7 @@
             <button type="button" data-k="image" aria-pressed="false">Image</button>
             <button type="button" data-k="video" aria-pressed="false">Vidéo</button>
             <button type="button" data-k="audio" aria-pressed="false">Audio</button>
+            <button type="button" data-k="lien" aria-pressed="false">Lien</button>
             <button type="button" data-k="texte" aria-pressed="false">Texte</button>
           </div>
         </div>
@@ -163,6 +164,10 @@
             <div class="fichier" id="nom-fichier"></div>
           </div>
           <input id="fichier" type="file" hidden>
+        </div>
+        <div class="champ" id="zone-lien" hidden>
+          <label for="lien">Adresse du lien</label>
+          <input id="lien" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://…">
         </div>
         <div class="champ">
           <label for="corps" id="lbl-corps">Légende (facultatif)</label>
@@ -262,7 +267,9 @@
   function choisirType(k) {
     type = k;
     document.querySelectorAll(".types button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === k)));
-    $("zone-fichier").hidden = k === "texte";
+    $("zone-fichier").hidden = k === "texte" || k === "lien";
+    $("zone-lien").hidden = k !== "lien";
+    if (k === "lien") $("lien").focus();
     $("fichier").accept = ACCEPT[k] || "";
     $("depot-titre").textContent = LIBELLE[k] || "";
     $("lbl-corps").textContent = k === "texte" ? "Texte" : "Légende (facultatif)";
@@ -318,7 +325,9 @@
     const corps = $("corps").value;
     if (!titre) return $("err-pub").textContent = "Ajoutez un titre.";
     if (type === "texte" && !corps.trim()) return $("err-pub").textContent = "Ajoutez un texte.";
-    if (type !== "texte" && !fichier) return $("err-pub").textContent = "Ajoutez un fichier.";
+    const lien = $("lien").value.trim();
+    if (type === "lien" && !/^https:\/\/\S+\.\S+$/.test(lien)) return $("err-pub").textContent = "Collez une adresse complète commençant par https://";
+    if (type !== "texte" && type !== "lien" && !fichier) return $("err-pub").textContent = "Ajoutez un fichier.";
     const btn = $("btn-pub"); btn.disabled = true; btn.textContent = "Publication…";
     try {
       if (MEDIA(type)) {
@@ -328,10 +337,10 @@
         btn.textContent = "Publication…";
         await appel("publish", { title: titre, kind: type, body: corps, path: s.path });
       } else {
-        await appel("publish", { title: titre, kind: type, body: corps, file: type !== "texte" ? fichier : null });
+        await appel("publish", { title: titre, kind: type, body: corps, file: (type !== "texte" && type !== "lien") ? fichier : null, url: type === "lien" ? lien : null });
       }
       toast("Publiée");
-      $("titre").value = ""; $("corps").value = ""; definirFichier(null);
+      $("titre").value = ""; $("corps").value = ""; $("lien").value = ""; definirFichier(null);
       rafraichir();
     } catch (e) { $("err-pub").textContent = e.message; toast("Publication impossible", true); }
     finally { btn.disabled = false; btn.textContent = "Publier"; }
@@ -356,7 +365,7 @@
     });
   }
   function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-  const NOM_TYPE = { pdf: "PDF", page: "Page web", image: "Image", texte: "Texte", video: "Vidéo", audio: "Audio" };
+  const NOM_TYPE = { pdf: "PDF", page: "Page web", image: "Image", texte: "Texte", video: "Vidéo", audio: "Audio", lien: "Lien" };
   async function rafraichir() {
     try {
       const { cards } = await appel("list");

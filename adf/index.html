@@ -180,6 +180,7 @@
       const lien = vue;
       contenu = `${legende}<div class="actions"><a class="bouton" href="${esc(lien)}">Ouvrir la page</a></div>`;
     }
+    if (c.kind === "lien" && /^https:\/\//.test(c.file_url || "")) contenu = `${legende}<div class="actions"><a class="bouton" href="${esc(c.file_url)}" target="_blank" rel="noopener">Ouvrir la page</a></div>`;
     if (c.kind === "video") contenu = `${legende}<video class="media" controls playsinline preload="metadata" src="${esc(c.file_url)}#t=0.1"></video>`;
     if (c.kind === "audio") contenu = `${legende}<audio class="media" controls preload="none" src="${esc(c.file_url)}"></audio>`;
     a.innerHTML = `<span class="heure">${heure(c.created_at)}</span><h2>${esc(c.title)}</h2>${contenu}`;
