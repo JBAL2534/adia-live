@@ -204,6 +204,8 @@
       <div class="q-tete">
         <h2 id="q-h">Questions du public<span class="pastille-n" id="q-n" hidden>0</span></h2>
         <button class="petit" id="q-bascule" type="button">Ouvrir les questions</button>
+        <button class="petit" id="q-alertes" type="button" hidden>Activer les alertes sur cet ordinateur</button>
+        <button class="petit" id="q-test-mail" type="button">Tester l’alerte e-mail</button>
       </div>
       <p class="q-etat" id="q-etat">Questions fermées : le public ne voit pas le champ de saisie.</p>
       <div class="liste" id="q-liste"><p class="rien">Aucune question pour l’instant.</p></div>
@@ -420,6 +422,7 @@
 
   // --- Questions du public ---
   let qOuvert = false, qConnues = null, qSig = "", qDonnees = [], qRep = null;
+  const TITRE_REGIE = document.title;
   function rendreQuestions(d) {
     const sig = JSON.stringify(d);
     if (sig === qSig) return;
@@ -433,7 +436,18 @@
     const attente = qs.filter(q => !q.done).length;
     $("q-n").textContent = attente; $("q-n").hidden = attente === 0;
     const ids = qs.map(q => q.id);
-    if (qConnues && ids.some(id => !qConnues.has(id))) toast("Nouvelle question");
+    document.title = (attente ? "(" + attente + ") " : "") + TITRE_REGIE;
+    const arrivees = qConnues ? qs.filter(q => !qConnues.has(q.id)) : [];
+    if (arrivees.length) {
+      toast(arrivees.length > 1 ? "Nouvelles questions" : "Nouvelle question");
+      // Notification du Mac ou du PC quand la régie n'est pas à l'écran.
+      if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+        try {
+          const n = new Notification("Question du public · " + EVENT.toUpperCase().replace(/-/g, " "), { body: (arrivees[0].name ? arrivees[0].name + " : " : "") + arrivees[0].body, tag: "adia-live-question" });
+          n.onclick = () => { window.focus(); n.close(); };
+        } catch {}
+      }
+    }
     qConnues = new Set(ids);
     // Une réponse est en cours de rédaction : on ne redessine pas la liste, pour ne pas effacer le texte saisi.
     if (qRep && document.getElementById("q-rep-texte")) return;
@@ -505,7 +519,24 @@
       chargerQuestions();
     } catch (err) { toast(err.message, true); }
   });
-  setInterval(() => { if (!$("ecran-regie").hidden && !document.hidden) chargerQuestions(true); }, 5000);
+  // La surveillance continue même quand l'onglet est en arrière-plan.
+  setInterval(() => { if (!$("ecran-regie").hidden) chargerQuestions(true); }, 5000);
+  if ("Notification" in window && Notification.permission === "default") $("q-alertes").hidden = false;
+  $("q-alertes").addEventListener("click", async () => {
+    const p = await Notification.requestPermission();
+    $("q-alertes").hidden = p !== "default";
+    toast(p === "granted" ? "Alertes activées sur cet ordinateur" : "Alertes refusées par le navigateur", p !== "granted");
+  });
+  $("q-test-mail").addEventListener("click", async () => {
+    const b = $("q-test-mail"); b.disabled = true;
+    try {
+      const r = await appel("alerttest");
+      if (r.etat === "envoyee") toast("E-mail d’essai envoyé à " + r.a);
+      else if (r.etat === "inactive") toast("Alerte e-mail pas encore configurée", true);
+      else toast("E-mail refusé : " + r.etat, true);
+    } catch (e) { toast(e.message, true); }
+    b.disabled = false;
+  });
 
   init();
 </script>
