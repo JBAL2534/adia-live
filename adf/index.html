@@ -114,6 +114,14 @@
   .questions button:disabled { opacity: .55; cursor: default; }
   .questions .retour { min-height: 1.4em; margin: 0.7rem 0 0; font-size: 0.95rem; color: var(--or-clair); }
   .questions .retour.ko { color: #E58C6B; }
+  .questions .mention { color: var(--doux); font-size: 0.82rem; line-height: 1.45; margin: -0.4rem 0 0.9rem; }
+  .questions .mention a { color: var(--or-clair); }
+  .maq { border-top: 1px solid var(--filet); padding: 0.85rem 0; }
+  .maq:first-of-type { border-top: 0; padding-top: 0.3rem; }
+  .maq .h { color: var(--doux); font-size: 0.82rem; }
+  .maq .q { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
+  .maq .r { margin: 0.6rem 0 0; padding: 0.6rem 0.8rem; border-left: 3px solid var(--or); background: #17140D; border-radius: 0 0.5rem 0.5rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .maq .r strong { display: block; color: var(--or-clair); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
   .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
   .garder { margin: 1rem 0 0; }
   .garder button { cursor: pointer; min-height: 2.5rem; padding: 0.45rem 1rem; font-size: 0.92rem; }
@@ -146,6 +154,12 @@
     </div>
   </section>
 
+  <section class="questions" id="mes-questions" hidden aria-labelledby="mq-titre">
+    <h2 id="mq-titre">Vos questions</h2>
+    <p class="aide">Les réponses apparaissent ici, sur ce téléphone uniquement.</p>
+    <div id="mq-liste"></div>
+  </section>
+
   <section class="questions" id="questions" hidden aria-labelledby="q-titre">
     <h2 id="q-titre">Posez votre question</h2>
     <p class="aide">Elle est transmise en privé. Elle n’est pas affichée aux autres participants.</p>
@@ -154,6 +168,9 @@
       <input id="q-nom" type="text" maxlength="40" autocomplete="given-name">
       <label for="q-texte">Votre question</label>
       <textarea id="q-texte" maxlength="300" required></textarea>
+      <label for="q-mail">Votre e-mail (facultatif)</label>
+      <input id="q-mail" type="email" maxlength="200" autocomplete="email" inputmode="email">
+      <p class="mention">Votre e-mail sert uniquement à vous répondre après la conférence. Il n’est ni affiché ni transmis à des tiers. Pour le faire supprimer : <a href="mailto:contact@adia-academie.ai">contact@adia-academie.ai</a>.</p>
       <input class="piege" type="text" id="q-site" tabindex="-1" autocomplete="off" aria-hidden="true">
       <div class="pied">
         <span class="compteur" id="q-compteur">0 / 300</span>
@@ -262,24 +279,58 @@
       if (qZone.hidden === ouvert) qZone.hidden = !ouvert;
     } catch {}
   }
+  // --- Réponses reçues : les questions de ce téléphone, et leurs réponses ---
+  const CLE_DEMANDE = "adia-live-a-demande-" + EVENT;
+  let aDemande = false, mqSig = "", mqRepondues = null;
+  try { aDemande = localStorage.getItem(CLE_DEMANDE) === "1"; } catch {}
+  async function mesQuestions() {
+    if (!aDemande) return;
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/live_my_answers`, {
+        method: "POST", cache: "no-store",
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_event: EVENT, p_device: APPAREIL })
+      });
+      if (!r.ok) return;
+      const qs = await r.json();
+      const sig = JSON.stringify(qs);
+      if (sig === mqSig) return;
+      mqSig = sig;
+      const repondues = new Set(qs.filter(q => q.answer).map(q => q.id));
+      if (mqRepondues && [...repondues].some(id => !mqRepondues.has(id))) signaler("Réponse à votre question");
+      mqRepondues = repondues;
+      document.getElementById("mes-questions").hidden = qs.length === 0;
+      document.getElementById("mq-liste").innerHTML = qs.map(q => `
+        <div class="maq">
+          <span class="h">Envoyée à ${heure(q.created_at)}</span>
+          <p class="q">${esc(q.body)}</p>
+          ${q.answer ? `<div class="r"><strong>Réponse</strong>${esc(q.answer)}</div>` : ""}
+        </div>`).join("");
+    } catch {}
+  }
   function retourQ(t, ko) { qRetour.textContent = t; qRetour.classList.toggle("ko", !!ko); }
   qTexte.addEventListener("input", () => { document.getElementById("q-compteur").textContent = qTexte.value.length + " / 300"; });
   qForm.addEventListener("submit", async ev => {
     ev.preventDefault();
     const texte = qTexte.value.trim();
     if (texte.length < 3) { retourQ("Écrivez votre question.", true); qTexte.focus(); return; }
+    const mail = document.getElementById("q-mail").value.trim();
+    if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { retourQ("Vérifiez votre adresse e-mail, ou laissez le champ vide.", true); document.getElementById("q-mail").focus(); return; }
     qBtn.disabled = true; qBtn.textContent = "Envoi…";
     let attente = 0;
     try {
       const fd = new FormData();
       fd.append("action", "ask"); fd.append("event", EVENT); fd.append("device", APPAREIL);
       fd.append("name", document.getElementById("q-nom").value); fd.append("body", texte);
+      fd.append("email", mail);
       fd.append("site", document.getElementById("q-site").value);
       const r = await fetch(FN, { method: "POST", body: fd, headers: { apikey: SUPABASE_KEY } });
       let d = {}; try { d = await r.json(); } catch {}
       if (!r.ok) throw new Error(d.error || "Envoi impossible. Réessayez.");
       qTexte.value = ""; document.getElementById("q-compteur").textContent = "0 / 300";
       retourQ("Question envoyée. Merci.");
+      aDemande = true; try { localStorage.setItem(CLE_DEMANDE, "1"); } catch {}
+      mesQuestions();
       attente = 20;
     } catch (e) {
       retourQ(e instanceof TypeError ? "Connexion interrompue. Réessayez." : e.message, true);
@@ -294,6 +345,7 @@
 
   async function charger() {
     etatQuestions();
+    mesQuestions();
     try {
       const url = `${SUPABASE_URL}/rest/v1/live_cards?select=id,code,created_at,title,kind,body,file_url&event=eq.${EVENT}&order=created_at.desc`;
       const r = await fetch(url, { headers: { apikey: SUPABASE_KEY }, cache: "no-store" });

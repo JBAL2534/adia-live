@@ -96,6 +96,13 @@
   .question .qui { color: var(--doux); font-size: 0.85rem; }
   .question .quoi { margin: 0.25rem 0 0.6rem; overflow-wrap: anywhere; font-size: 1.05rem; }
   .question .act { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .q-mail, .q-rep { margin: 0 0 0.6rem; font-size: 0.95rem; overflow-wrap: anywhere; }
+  .q-mail a { color: var(--or-clair); }
+  .q-rep { padding: 0.5rem 0.7rem; border-left: 3px solid var(--or); background: var(--surface); white-space: pre-wrap; border-radius: 0 0.5rem 0.5rem 0; }
+  .q-rep strong { display: block; color: var(--or-clair); font-size: 0.82rem; }
+  .q-form { margin: 0 0 0.7rem; }
+  .q-form textarea { min-height: 5.5rem; margin-bottom: 0.5rem; }
+  .petit.fort, .petit.fort:hover { background: var(--or); color: var(--noir); border-color: var(--or); }
   .pastille-n { display: inline-block; min-width: 1.5rem; padding: 0 0.4rem; margin-left: 0.5rem; border-radius: 999px; background: var(--or); color: var(--noir); font: 600 0.85rem/1.5rem var(--corps); text-align: center; vertical-align: middle; }
 </style>
 </head>
@@ -412,7 +419,7 @@
   });
 
   // --- Questions du public ---
-  let qOuvert = false, qConnues = null, qSig = "", qDonnees = [];
+  let qOuvert = false, qConnues = null, qSig = "", qDonnees = [], qRep = null;
   function rendreQuestions(d) {
     const sig = JSON.stringify(d);
     if (sig === qSig) return;
@@ -428,16 +435,31 @@
     const ids = qs.map(q => q.id);
     if (qConnues && ids.some(id => !qConnues.has(id))) toast("Nouvelle question");
     qConnues = new Set(ids);
+    // Une réponse est en cours de rédaction : on ne redessine pas la liste, pour ne pas effacer le texte saisi.
+    if (qRep && document.getElementById("q-rep-texte")) return;
     $("q-liste").innerHTML = qs.length ? qs.map(q => `
       <div class="question ${q.done ? "traitee" : ""}">
         <div class="qui">${esc(q.name || "Anonyme")}, ${new Date(q.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}${q.done ? ", traitée" : ""}</div>
         <p class="quoi">${esc(q.body)}</p>
+        ${q.email ? `<p class="q-mail">E-mail : <a href="mailto:${esc(q.email)}?subject=${encodeURIComponent("Votre question pendant la conférence")}&body=${encodeURIComponent("Bonjour,\n\nVous avez posé cette question pendant la conférence :\n« " + q.body + " »\n\n")}">${esc(q.email)}</a></p>` : ""}
+        ${q.answer ? `<p class="q-rep"><strong>Votre réponse</strong>${esc(q.answer)}</p>` : ""}
+        ${qRep === q.id ? `<div class="q-form">
+          <label for="q-rep-texte">Votre réponse</label>
+          <textarea id="q-rep-texte" maxlength="1000">${esc(q.answer || "")}</textarea>
+          <div class="act">
+            <button class="petit fort" data-q="prive" data-id="${q.id}">Envoyer en privé</button>
+            <button class="petit" data-q="public" data-id="${q.id}">Publier à tous</button>
+            <button class="petit" data-q="annuler" data-id="${q.id}">Annuler</button>
+          </div>
+        </div>` : ""}
         <div class="act">
+          <button class="petit" data-q="repondre" data-id="${q.id}">${q.answer ? "Modifier la réponse" : "Répondre"}</button>
           <button class="petit" data-q="publier" data-id="${q.id}">Afficher à tous</button>
           <button class="petit" data-q="${q.done ? "rouvrir" : "traiter"}" data-id="${q.id}">${q.done ? "Remettre en attente" : "Traitée"}</button>
           <button class="petit danger" data-q="supprimer" data-id="${q.id}">Supprimer</button>
         </div>
       </div>`).join("") : '<p class="rien">Aucune question pour l’instant.</p>';
+    const zone = document.getElementById("q-rep-texte"); if (zone) zone.focus();
   }
   async function chargerQuestions(silencieux) {
     try { rendreQuestions(await appel("questions")); }
@@ -454,6 +476,21 @@
     const b = e.target.closest("button[data-q]"); if (!b) return;
     const q = qDonnees.find(x => x.id === b.dataset.id); if (!q) return;
     try {
+      if (b.dataset.q === "repondre") { qRep = q.id; qSig = ""; return chargerQuestions(); }
+      if (b.dataset.q === "annuler") { qRep = null; qSig = ""; return chargerQuestions(); }
+      if (b.dataset.q === "prive" || b.dataset.q === "public") {
+        const rep = document.getElementById("q-rep-texte").value.trim();
+        if (rep.length < 2) return toast("Écrivez votre réponse.", true);
+        if (b.dataset.q === "public") {
+          if (!confirm("Publier la question et votre réponse sur tous les téléphones ?")) return;
+          await appel("publish", { title: q.name ? "Question de " + q.name : "Question du public", kind: "texte", body: q.body + "\n\nRéponse : " + rep });
+          rafraichir();
+        }
+        await appel("qanswer", { id: q.id, answer: rep });
+        qRep = null; qSig = "";
+        toast(b.dataset.q === "public" ? "Réponse publiée à tous" : "Réponse envoyée en privé");
+        return chargerQuestions();
+      }
       if (b.dataset.q === "publier") {
         if (!confirm("Afficher cette question sur tous les téléphones ?")) return;
         await appel("publish", { title: q.name ? "Question de " + q.name : "Question du public", kind: "texte", body: q.body });
