@@ -116,6 +116,8 @@
   .questions .retour { min-height: 1.4em; margin: 0.7rem 0 0; font-size: 0.95rem; color: var(--or-clair); }
   .questions .retour.ko { color: #E58C6B; }
   .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .garder { margin: 1rem 0 0; }
+  .garder button { cursor: pointer; min-height: 2.5rem; padding: 0.45rem 1rem; font-size: 0.92rem; }
   @media (prefers-reduced-motion: reduce) {
     .pastille, article.nouvelle { animation: none; }
     .toast { transition: none; }
@@ -134,6 +136,7 @@
     <p class="sous" id="sous">Une conférence du</p>
     <p class="orateurs"><span>Dr Jacques BITTON</span></p>
     <div class="etat" id="etat" role="status"><span class="pastille" aria-hidden="true"></span><span id="etat-texte">Connexion…</span></div>
+    <p class="garder"><button class="bouton second" id="garder" type="button">Garder le lien</button></p>
   </header>
 
   <section aria-live="polite">
@@ -224,6 +227,17 @@
     setTimeout(() => toast.classList.remove("visible"), 3000);
     if (navigator.vibrate) navigator.vibrate(60);
   }
+  // --- Garder le lien : menu de partage du téléphone, sinon copie du lien ---
+  document.getElementById("garder").addEventListener("click", async () => {
+    const url = location.origin + location.pathname;
+    if (navigator.share) {
+      try { await navigator.share({ title: document.title, url }); return; }
+      catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(url); signaler("Lien copié"); }
+    catch { window.prompt("Copiez ce lien pour retrouver la page :", url); }
+  });
+
   // --- Questions du public ---
   const FN = SUPABASE_URL + "/functions/v1/live-admin";
   const qZone = document.getElementById("questions");
