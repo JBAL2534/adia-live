@@ -147,6 +147,8 @@
     </form>
   </section>
 
+  <p class="rien" id="attente" role="status" style="text-align:center;margin:3rem 0 0">Connexion au serveur…</p>
+
   <!-- Régie -->
   <div class="grille" id="ecran-regie" hidden>
     <section class="bloc">
@@ -237,16 +239,19 @@
     if (code) fd.append("code", code);
     fd.append("event", EVENT);
     for (const [k, v] of Object.entries(champs)) if (v !== null && v !== undefined) fd.append(k, v);
-    const r = await fetch(FN, { method: "POST", body: fd, headers: { apikey: KEY } });
+    let r;
+    try { r = await fetch(FN, { method: "POST", body: fd, headers: { apikey: KEY }, signal: AbortSignal.timeout(action === "publish" ? 180000 : 15000) }); }
+    catch { const e = new Error("Le serveur ne répond pas. Vérifiez la connexion."); e.status = 0; throw e; }
     let data = {};
     try { data = await r.json(); } catch {}
-    if (!r.ok) throw new Error(data.error || "Le serveur ne répond pas. Vérifiez la connexion.");
+    if (!r.ok) { const e = new Error(data.error || "Le serveur ne répond pas. Vérifiez la connexion."); e.status = r.status; throw e; }
     return data;
   }
   function montrer(ecran) {
     for (const e of ["ecran-creation", "ecran-connexion", "ecran-regie"]) $(e).hidden = e !== ecran;
     $("liens").hidden = ecran !== "ecran-regie";
     $("confs").hidden = ecran !== "ecran-regie";
+    $("attente").hidden = true;
   }
 
   async function init() {
@@ -255,11 +260,19 @@
       if (!s.configured) return montrer("ecran-creation");
       if (code) {
         try { await appel("login"); montrer("ecran-regie"); return rafraichir(); }
-        catch { code = ""; sessionStorage.removeItem("adia-live-code"); }
+        catch (e) {
+          // Seul un code refusé déconnecte. Une panne passagère du serveur ne doit pas effacer le code.
+          if (e.status !== 401) throw e;
+          code = ""; sessionStorage.removeItem("adia-live-code");
+        }
       }
       montrer("ecran-connexion"); $("code").focus();
     } catch (e) {
-      montrer("ecran-connexion"); $("err-connexion").textContent = e.message;
+      // Le serveur ne répond pas : on patiente et on réessaie, sans déconnecter.
+      for (const x of ["ecran-creation", "ecran-connexion", "ecran-regie"]) $(x).hidden = true;
+      $("attente").hidden = false;
+      $("attente").textContent = "Le serveur ne répond pas pour le moment. Nouvelle tentative dans quelques secondes…";
+      setTimeout(init, 5000);
     }
   }
 

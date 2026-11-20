@@ -349,7 +349,7 @@
     mesQuestions();
     try {
       const url = `${SUPABASE_URL}/rest/v1/live_cards?select=id,code,created_at,title,kind,body,file_url&event=eq.${EVENT}&order=created_at.desc`;
-      const r = await fetch(url, { headers: { apikey: SUPABASE_KEY }, cache: "no-store" });
+      const r = await fetch(url, { headers: { apikey: SUPABASE_KEY }, cache: "no-store", signal: AbortSignal.timeout(10000) });
       if (!r.ok) throw new Error(r.status);
       const cartes = await r.json();
       etat.classList.remove("hors");
