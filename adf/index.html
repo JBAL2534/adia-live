@@ -101,6 +101,20 @@
   footer .devise span { display: block; white-space: nowrap; }
   footer .nom { font: 600 1.05rem/1.3 var(--titre); color: var(--or); margin-bottom: 0.25rem; }
 
+  .questions { margin-top: 2rem; background: var(--surface); border: 1px solid var(--filet); border-radius: 1rem; padding: 1.25rem; }
+  .questions h2 { font: 600 1.15rem/1.3 var(--titre); color: var(--or-clair); margin: 0 0 0.3rem; }
+  .questions .aide { color: var(--doux); font-size: 0.92rem; margin: 0 0 1rem; }
+  .questions label { display: block; font-weight: 600; font-size: 0.95rem; margin: 0 0 0.35rem; }
+  .questions input, .questions textarea { width: 100%; background: #17140D; color: var(--texte); border: 1px solid var(--filet); border-radius: 0.6rem; padding: 0.7rem 0.8rem; font: inherit; font-size: 1rem; margin-bottom: 0.9rem; }
+  .questions textarea { min-height: 6rem; resize: vertical; }
+  .questions input:focus-visible, .questions textarea:focus-visible { outline: 2px solid var(--or-clair); outline-offset: 2px; }
+  .questions .pied { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  .questions .compteur { color: var(--doux); font-size: 0.85rem; }
+  .questions button { cursor: pointer; }
+  .questions button:disabled { opacity: .55; cursor: default; }
+  .questions .retour { min-height: 1.4em; margin: 0.7rem 0 0; font-size: 0.95rem; color: var(--or-clair); }
+  .questions .retour.ko { color: #E58C6B; }
+  .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
   @media (prefers-reduced-motion: reduce) {
     .pastille, article.nouvelle { animation: none; }
     .toast { transition: none; }
@@ -127,6 +141,23 @@
       <strong>Les démonstrations apparaîtront ici au fil de la conférence.</strong>
       Gardez cette page ouverte : elle se met à jour toute seule.
     </div>
+  </section>
+
+  <section class="questions" id="questions" hidden aria-labelledby="q-titre">
+    <h2 id="q-titre">Posez votre question</h2>
+    <p class="aide">Elle est transmise en privé. Elle n’est pas affichée aux autres participants.</p>
+    <form id="q-form" novalidate>
+      <label for="q-nom">Votre prénom (facultatif)</label>
+      <input id="q-nom" type="text" maxlength="40" autocomplete="given-name">
+      <label for="q-texte">Votre question</label>
+      <textarea id="q-texte" maxlength="300" required></textarea>
+      <input class="piege" type="text" id="q-site" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="pied">
+        <span class="compteur" id="q-compteur">0 / 300</span>
+        <button class="bouton" id="q-envoyer" type="submit">Envoyer</button>
+      </div>
+      <p class="retour" id="q-retour" role="status"></p>
+    </form>
   </section>
 
   <footer>
@@ -192,7 +223,63 @@
     setTimeout(() => toast.classList.remove("visible"), 3000);
     if (navigator.vibrate) navigator.vibrate(60);
   }
+  // --- Questions du public ---
+  const FN = SUPABASE_URL + "/functions/v1/live-admin";
+  const qZone = document.getElementById("questions");
+  const qForm = document.getElementById("q-form");
+  const qTexte = document.getElementById("q-texte");
+  const qBtn = document.getElementById("q-envoyer");
+  const qRetour = document.getElementById("q-retour");
+  const APPAREIL = (() => {
+    let id = "";
+    try { id = localStorage.getItem("adia-live-appareil") || ""; } catch {}
+    if (id.length < 8) {
+      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+      try { localStorage.setItem("adia-live-appareil", id); } catch {}
+    }
+    return id;
+  })();
+  async function etatQuestions() {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/live_events?select=questions_open&event=eq.${EVENT}`, { headers: { apikey: SUPABASE_KEY }, cache: "no-store" });
+      if (!r.ok) return;
+      const l = await r.json();
+      const ouvert = !!(l[0] && l[0].questions_open);
+      if (qZone.hidden === ouvert) qZone.hidden = !ouvert;
+    } catch {}
+  }
+  function retourQ(t, ko) { qRetour.textContent = t; qRetour.classList.toggle("ko", !!ko); }
+  qTexte.addEventListener("input", () => { document.getElementById("q-compteur").textContent = qTexte.value.length + " / 300"; });
+  qForm.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const texte = qTexte.value.trim();
+    if (texte.length < 3) { retourQ("Écrivez votre question.", true); qTexte.focus(); return; }
+    qBtn.disabled = true; qBtn.textContent = "Envoi…";
+    let attente = 0;
+    try {
+      const fd = new FormData();
+      fd.append("action", "ask"); fd.append("event", EVENT); fd.append("device", APPAREIL);
+      fd.append("name", document.getElementById("q-nom").value); fd.append("body", texte);
+      fd.append("site", document.getElementById("q-site").value);
+      const r = await fetch(FN, { method: "POST", body: fd, headers: { apikey: SUPABASE_KEY } });
+      let d = {}; try { d = await r.json(); } catch {}
+      if (!r.ok) throw new Error(d.error || "Envoi impossible. Réessayez.");
+      qTexte.value = ""; document.getElementById("q-compteur").textContent = "0 / 300";
+      retourQ("Question envoyée. Merci.");
+      attente = 20;
+    } catch (e) {
+      retourQ(e instanceof TypeError ? "Connexion interrompue. Réessayez." : e.message, true);
+    }
+    const fin = Date.now() + attente * 1000;
+    (function tic() {
+      const reste = Math.ceil((fin - Date.now()) / 1000);
+      if (reste > 0) { qBtn.textContent = "Envoyer (" + reste + " s)"; setTimeout(tic, 500); }
+      else { qBtn.disabled = false; qBtn.textContent = "Envoyer"; }
+    })();
+  });
+
   async function charger() {
+    etatQuestions();
     try {
       const url = `${SUPABASE_URL}/rest/v1/live_cards?select=id,code,created_at,title,kind,body,file_url&event=eq.${EVENT}&order=created_at.desc`;
       const r = await fetch(url, { headers: { apikey: SUPABASE_KEY }, cache: "no-store" });

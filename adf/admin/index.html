@@ -86,6 +86,17 @@
   .toast.visible { transform: translate(-50%, 0); }
   .toast.ko { background: var(--alerte); }
   [hidden] { display: none !important; }
+  @media (min-width: 52.01rem) { .grille > .bloc:first-child { grid-row: span 2; } }
+  .q-tete { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+  .q-tete h2 { margin: 0; }
+  .q-etat { color: var(--doux); font-size: 0.9rem; margin: 0 0 1rem; }
+  .q-etat.ouvert { color: var(--or-clair); }
+  .question { padding: 0.75rem 0.85rem; border: 1px solid var(--filet); border-radius: 0.7rem; background: var(--champ); }
+  .question.traitee { opacity: .5; }
+  .question .qui { color: var(--doux); font-size: 0.85rem; }
+  .question .quoi { margin: 0.25rem 0 0.6rem; overflow-wrap: anywhere; font-size: 1.05rem; }
+  .question .act { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .pastille-n { display: inline-block; min-width: 1.5rem; padding: 0 0.4rem; margin-left: 0.5rem; border-radius: 999px; background: var(--or); color: var(--noir); font: 600 0.85rem/1.5rem var(--corps); text-align: center; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -181,6 +192,14 @@
     <section class="bloc">
       <h2>Cartes publiées</h2>
       <div class="liste" id="liste"><p class="rien">Aucune carte publiée pour l’instant.</p></div>
+    </section>
+    <section class="bloc" aria-labelledby="q-h">
+      <div class="q-tete">
+        <h2 id="q-h">Questions du public<span class="pastille-n" id="q-n" hidden>0</span></h2>
+        <button class="petit" id="q-bascule" type="button">Ouvrir les questions</button>
+      </div>
+      <p class="q-etat" id="q-etat">Questions fermées : le public ne voit pas le champ de saisie.</p>
+      <div class="liste" id="q-liste"><p class="rien">Aucune question pour l’instant.</p></div>
     </section>
   </div>
 </main>
@@ -391,6 +410,65 @@
       rafraichir();
     } catch (err) { toast(err.message, true); }
   });
+
+  // --- Questions du public ---
+  let qOuvert = false, qConnues = null, qSig = "", qDonnees = [];
+  function rendreQuestions(d) {
+    const sig = JSON.stringify(d);
+    if (sig === qSig) return;
+    qSig = sig;
+    qOuvert = !!d.open;
+    $("q-bascule").textContent = qOuvert ? "Fermer les questions" : "Ouvrir les questions";
+    $("q-etat").textContent = qOuvert ? "Questions ouvertes : le public peut écrire." : "Questions fermées : le public ne voit pas le champ de saisie.";
+    $("q-etat").classList.toggle("ouvert", qOuvert);
+    const qs = d.questions || [];
+    qDonnees = qs;
+    const attente = qs.filter(q => !q.done).length;
+    $("q-n").textContent = attente; $("q-n").hidden = attente === 0;
+    const ids = qs.map(q => q.id);
+    if (qConnues && ids.some(id => !qConnues.has(id))) toast("Nouvelle question");
+    qConnues = new Set(ids);
+    $("q-liste").innerHTML = qs.length ? qs.map(q => `
+      <div class="question ${q.done ? "traitee" : ""}">
+        <div class="qui">${esc(q.name || "Anonyme")}, ${new Date(q.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}${q.done ? ", traitée" : ""}</div>
+        <p class="quoi">${esc(q.body)}</p>
+        <div class="act">
+          <button class="petit" data-q="publier" data-id="${q.id}">Afficher à tous</button>
+          <button class="petit" data-q="${q.done ? "rouvrir" : "traiter"}" data-id="${q.id}">${q.done ? "Remettre en attente" : "Traitée"}</button>
+          <button class="petit danger" data-q="supprimer" data-id="${q.id}">Supprimer</button>
+        </div>
+      </div>`).join("") : '<p class="rien">Aucune question pour l’instant.</p>';
+  }
+  async function chargerQuestions(silencieux) {
+    try { rendreQuestions(await appel("questions")); }
+    catch (e) { if (!silencieux) toast(e.message, true); }
+  }
+  $("q-bascule").addEventListener("click", async () => {
+    try {
+      await appel("qopen", { open: qOuvert ? "0" : "1" });
+      await chargerQuestions();
+      toast(qOuvert ? "Questions ouvertes" : "Questions fermées");
+    } catch (e) { toast(e.message, true); }
+  });
+  $("q-liste").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-q]"); if (!b) return;
+    const q = qDonnees.find(x => x.id === b.dataset.id); if (!q) return;
+    try {
+      if (b.dataset.q === "publier") {
+        if (!confirm("Afficher cette question sur tous les téléphones ?")) return;
+        await appel("publish", { title: q.name ? "Question de " + q.name : "Question du public", kind: "texte", body: q.body });
+        await appel("qdone", { id: q.id, done: "1" });
+        toast("Question affichée"); rafraichir();
+      } else if (b.dataset.q === "supprimer") {
+        if (!confirm("Supprimer cette question ?")) return;
+        await appel("qdelete", { id: q.id });
+      } else {
+        await appel("qdone", { id: q.id, done: b.dataset.q === "traiter" ? "1" : "0" });
+      }
+      chargerQuestions();
+    } catch (err) { toast(err.message, true); }
+  });
+  setInterval(() => { if (!$("ecran-regie").hidden && !document.hidden) chargerQuestions(true); }, 5000);
 
   init();
 </script>
