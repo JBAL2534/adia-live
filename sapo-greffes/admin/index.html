@@ -212,6 +212,15 @@
       <p class="q-etat" id="q-etat">Questions fermées : le public ne voit pas le champ de saisie.</p>
       <div class="liste" id="q-liste"><p class="rien">Aucune question pour l’instant.</p></div>
     </section>
+    <section class="bloc" aria-labelledby="c-h">
+      <div class="q-tete">
+        <h2 id="c-h">Inscrits à l’actualité ADIA<span class="pastille-n" id="c-n" hidden>0</span></h2>
+        <button class="petit" id="c-maj" type="button">Actualiser</button>
+        <button class="petit" id="c-csv" type="button">Exporter cette conférence (CSV)</button>
+        <button class="petit" id="c-csv-tous" type="button">Exporter toutes les conférences (CSV)</button>
+      </div>
+      <p class="q-etat" id="c-etat">Les inscrits sont aussi ajoutés à la liste Brevo « Actualité ADIA ».</p>
+    </section>
   </div>
 </main>
 <div class="toast" id="toast" role="status"></div>
@@ -552,6 +561,45 @@
   });
 
   init();
+
+  // --- Inscrits à l'actualité ADIA ---
+  async function appelContacts(ev) {
+    const fd = new FormData();
+    fd.append("action", "contacts"); fd.append("code", code); fd.append("event", ev);
+    const r = await fetch(FN.replace("live-admin", "live-contacts"), { method: "POST", body: fd, headers: { apikey: KEY }, signal: AbortSignal.timeout(15000) });
+    let d = {}; try { d = await r.json(); } catch {}
+    if (!r.ok) throw new Error(d.error || "Le serveur ne répond pas.");
+    return d.contacts || [];
+  }
+  async function compterInscrits() {
+    try {
+      const l = await appelContacts(EVENT);
+      $("c-n").textContent = l.length; $("c-n").hidden = l.length === 0;
+      const brevoKo = l.filter(c => !String(c.brevo_status || "").startsWith("ok")).length;
+      $("c-etat").textContent = l.length
+        ? `${l.length} inscrit(s) pour cette conférence.` + (brevoKo ? ` ${brevoKo} non transmis à Brevo : ils restent dans l’export.` : " Tous transmis à la liste Brevo « Actualité ADIA ».")
+        : "Aucun inscrit pour cette conférence. Les inscrits sont aussi ajoutés à la liste Brevo « Actualité ADIA ».";
+    } catch {}
+  }
+  async function exporterInscrits(ev) {
+    try {
+      const l = await appelContacts(ev);
+      if (!l.length) return toast("Aucun inscrit à exporter.");
+      const cel = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+      const lignes = [["Date", "Conférence", "Prénom", "E-mail", "Portable", "Brevo"].map(cel).join(";")]
+        .concat(l.map(c => [new Date(c.created_at).toLocaleString("fr-FR"), c.event, c.name, c.email, c.phone, c.brevo_status].map(cel).join(";")));
+      const url = URL.createObjectURL(new Blob(["\ufeff" + lignes.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = `inscrits-adia-${ev}-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (e) { toast(e.message, true); }
+  }
+  $("c-maj").addEventListener("click", compterInscrits);
+  $("c-csv").addEventListener("click", () => exporterInscrits(EVENT));
+  $("c-csv-tous").addEventListener("click", () => exporterInscrits("tous"));
+  setInterval(() => { if (code && !$("ecran-regie").hidden) compterInscrits(); }, 60000);
+  new MutationObserver(() => { if (!$("ecran-regie").hidden) compterInscrits(); }).observe($("ecran-regie"), { attributes: true, attributeFilter: ["hidden"] });
 </script>
 </body>
 </html>
