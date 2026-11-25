@@ -188,7 +188,9 @@
     <h2 id="i-titre">Restez informé de l’actualité ADIA</h2>
     <p class="aide">Laissez votre e-mail ou votre portable pour recevoir les nouvelles de l’Académie.</p>
     <form id="i-form" novalidate>
-      <label for="i-nom">Votre prénom (facultatif)</label>
+      <label for="i-nomfam">Votre nom</label>
+      <input id="i-nomfam" type="text" maxlength="60" autocomplete="family-name">
+      <label for="i-nom">Votre prénom</label>
       <input id="i-nom" type="text" maxlength="40" autocomplete="given-name">
       <label for="i-mail">Votre e-mail</label>
       <input id="i-mail" type="email" maxlength="200" autocomplete="email" inputmode="email">
@@ -422,6 +424,10 @@
       ev.preventDefault();
       const mail = document.getElementById("i-mail").value.trim();
       const tel = document.getElementById("i-tel").value.trim();
+      const nomFam = document.getElementById("i-nomfam").value.trim();
+      const prenom = document.getElementById("i-nom").value.trim();
+      if (!nomFam) { dire("Indiquez votre nom.", true); document.getElementById("i-nomfam").focus(); return; }
+      if (!prenom) { dire("Indiquez votre prénom.", true); document.getElementById("i-nom").focus(); return; }
       if (!mail && !tel) { dire("Indiquez votre e-mail ou votre portable.", true); document.getElementById("i-mail").focus(); return; }
       if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { dire("Vérifiez votre adresse e-mail.", true); document.getElementById("i-mail").focus(); return; }
       if (tel && !/^\+?[\d\s.\-()]{9,20}$/.test(tel)) { dire("Vérifiez votre numéro de portable.", true); document.getElementById("i-tel").focus(); return; }
@@ -430,7 +436,7 @@
       try {
         const fd = new FormData();
         fd.append("action", "subscribe"); fd.append("event", EVENT); fd.append("device", APPAREIL);
-        fd.append("name", document.getElementById("i-nom").value); fd.append("email", mail); fd.append("phone", tel);
+        fd.append("name", prenom); fd.append("lastname", nomFam); fd.append("email", mail); fd.append("phone", tel);
         fd.append("consent", "1"); fd.append("site", document.getElementById("i-site").value);
         const r = await fetch(FN_INFOS, { method: "POST", body: fd, headers: { apikey: SUPABASE_KEY }, signal: AbortSignal.timeout(20000) });
         let d = {}; try { d = await r.json(); } catch {}
