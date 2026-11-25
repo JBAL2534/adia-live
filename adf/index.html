@@ -122,6 +122,9 @@
   .maq .q { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
   .maq .r { margin: 0.6rem 0 0; padding: 0.6rem 0.8rem; border-left: 3px solid var(--or); background: #17140D; border-radius: 0 0.5rem 0.5rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
   .maq .r strong { display: block; color: var(--or-clair); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .questions .case { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 400; margin: 0.2rem 0 0.9rem; cursor: pointer; }
+  .questions .case input { width: 1.25rem; height: 1.25rem; margin: 0.15rem 0 0; flex: none; accent-color: var(--or); }
+  .questions .merci { color: var(--or-clair); font-weight: 600; margin: 0.4rem 0 0; }
   .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
   .garder { margin: 1rem 0 0; }
   .garder button { cursor: pointer; min-height: 2.5rem; padding: 0.45rem 1rem; font-size: 0.92rem; }
@@ -178,6 +181,28 @@
       </div>
       <p class="retour" id="q-retour" role="status"></p>
     </form>
+  </section>
+
+  <section class="questions infos" id="infos" aria-labelledby="i-titre">
+    <h2 id="i-titre">Restez informé de l’actualité ADIA</h2>
+    <p class="aide">Laissez votre e-mail ou votre portable pour recevoir les nouvelles de l’Académie.</p>
+    <form id="i-form" novalidate>
+      <label for="i-nom">Votre prénom (facultatif)</label>
+      <input id="i-nom" type="text" maxlength="40" autocomplete="given-name">
+      <label for="i-mail">Votre e-mail</label>
+      <input id="i-mail" type="email" maxlength="200" autocomplete="email" inputmode="email">
+      <label for="i-tel">Votre portable</label>
+      <input id="i-tel" type="tel" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78">
+      <label class="case" for="i-accord"><input id="i-accord" type="checkbox"> <span>J’accepte de recevoir l’actualité ADIA par e-mail ou SMS. Je peux me désinscrire à tout moment.</span></label>
+      <p class="mention">Vos coordonnées servent uniquement à vous envoyer l’actualité ADIA. Elles ne sont ni affichées ni transmises à des tiers. Pour les faire supprimer : <a href="mailto:contact@adia-academie.ai">contact@adia-academie.ai</a>.</p>
+      <input class="piege" type="text" id="i-site" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="pied">
+        <span></span>
+        <button class="bouton" id="i-envoyer" type="submit">Je m’inscris</button>
+      </div>
+      <p class="retour" id="i-retour" role="status"></p>
+    </form>
+    <p class="merci" id="i-merci" hidden>Merci, vous êtes inscrit à l’actualité ADIA.</p>
   </section>
 
   <footer>
@@ -383,6 +408,40 @@
     if (document.hidden) clearInterval(minuteur); else demarrer();
   });
   demarrer();
+
+  // --- Inscription à l'actualité ADIA ---
+  (() => {
+    const FN_INFOS = SUPABASE_URL + "/functions/v1/live-contacts";
+    const CLE_INSCRIT = "adia-live-inscrit";
+    const f = document.getElementById("i-form"), btn = document.getElementById("i-envoyer"), ret = document.getElementById("i-retour");
+    const dire = (t, ko) => { ret.textContent = t; ret.classList.toggle("ko", !!ko); };
+    const fini = () => { f.hidden = true; document.getElementById("i-merci").hidden = false; };
+    try { if (localStorage.getItem(CLE_INSCRIT)) fini(); } catch {}
+    f.addEventListener("submit", async ev => {
+      ev.preventDefault();
+      const mail = document.getElementById("i-mail").value.trim();
+      const tel = document.getElementById("i-tel").value.trim();
+      if (!mail && !tel) { dire("Indiquez votre e-mail ou votre portable.", true); document.getElementById("i-mail").focus(); return; }
+      if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { dire("Vérifiez votre adresse e-mail.", true); document.getElementById("i-mail").focus(); return; }
+      if (tel && !/^\+?[\d\s.\-()]{9,20}$/.test(tel)) { dire("Vérifiez votre numéro de portable.", true); document.getElementById("i-tel").focus(); return; }
+      if (!document.getElementById("i-accord").checked) { dire("Cochez la case pour confirmer votre accord.", true); document.getElementById("i-accord").focus(); return; }
+      btn.disabled = true; btn.textContent = "Envoi…";
+      try {
+        const fd = new FormData();
+        fd.append("action", "subscribe"); fd.append("event", EVENT); fd.append("device", APPAREIL);
+        fd.append("name", document.getElementById("i-nom").value); fd.append("email", mail); fd.append("phone", tel);
+        fd.append("consent", "1"); fd.append("site", document.getElementById("i-site").value);
+        const r = await fetch(FN_INFOS, { method: "POST", body: fd, headers: { apikey: SUPABASE_KEY }, signal: AbortSignal.timeout(20000) });
+        let d = {}; try { d = await r.json(); } catch {}
+        if (!r.ok) throw new Error(d.error || "Envoi impossible. Réessayez.");
+        try { localStorage.setItem(CLE_INSCRIT, "1"); } catch {}
+        fini();
+      } catch (e) {
+        dire(e instanceof TypeError || e.name === "TimeoutError" ? "Connexion interrompue. Réessayez." : e.message, true);
+      }
+      btn.disabled = false; btn.textContent = "Je m’inscris";
+    });
+  })();
 </script>
 </body>
 </html>
