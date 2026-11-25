@@ -426,8 +426,6 @@
       const tel = document.getElementById("i-tel").value.trim();
       const nomFam = document.getElementById("i-nomfam").value.trim();
       const prenom = document.getElementById("i-nom").value.trim();
-      if (!nomFam) { dire("Indiquez votre nom.", true); document.getElementById("i-nomfam").focus(); return; }
-      if (!prenom) { dire("Indiquez votre prénom.", true); document.getElementById("i-nom").focus(); return; }
       if (!mail && !tel) { dire("Indiquez votre e-mail ou votre portable.", true); document.getElementById("i-mail").focus(); return; }
       if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { dire("Vérifiez votre adresse e-mail.", true); document.getElementById("i-mail").focus(); return; }
       if (tel && !/^\+?[\d\s.\-()]{9,20}$/.test(tel)) { dire("Vérifiez votre numéro de portable.", true); document.getElementById("i-tel").focus(); return; }
