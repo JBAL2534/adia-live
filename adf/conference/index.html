@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="narrative">
+  <meta name="design-style" content="atelier">
+  <title>Intelligence artificielle au cabinet : mode ou vraie révolution ? — ADF 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Jost:ital,wght@0,300..500;1,300..500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js" defer></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Palette : blanc chaud, bleu pétrole profond, corail (ni noir, ni doré) */
+      --background: #faf7f2;
+      --surface-container-low: #f3eee5;
+      --surface-container: #eae3d6;
+      --surface-container-high: #dfd6c6;
+      --nav-bg: rgba(250, 247, 242, 0.94);
+
+      /* Encres en bleu pétrole profond */
+      --on-surface: #0e3b46;
+      --on-surface-variant: #355b65;
+
+      /* Lignes et filets */
+      --outline: #0e3b46;
+      --outline-variant: #cfc7b8;
+
+      /* Accents : pétrole + corail */
+      --primary: #0e3b46;
+      --on-primary: #faf7f2;
+      --primary-container: #e3ecee;
+      --on-primary-container: #0e3b46;
+      --secondary: #bd3e2b;
+      --on-secondary: #faf7f2;
+      --secondary-soft: #f7e6e2;
+      --tertiary: #9aaeb3;
+      --error: #a62619;
+      --on-error: #faf7f2;
+
+      /* Sémantique */
+      --positive: #1f5e55;
+      --warning: #9e472a;
+      --focus: #bd3e2b;
+
+      /* Séries de données */
+      --data-1: #0e3b46;
+      --data-2: #bd3e2b;
+      --data-3: #355b65;
+      --data-4: #9e472a;
+      --data-context: #cfc7b8;
+
+      /* Typographie */
+      --font-headline: 'Bodoni Moda', Georgia, serif;
+      --font-body: 'Jost', sans-serif;
+      --font-label: 'Jost', sans-serif;
+
+      /* Échelle typographique narrative */
+      --display-size: clamp(2.5rem, 1.5rem + 4.4vw, 4.85rem);
+      --headline-size: clamp(1.875rem, 1.25rem + 2.2vw, 2.85rem);
+      --subhead-size: clamp(1.25rem, 1.05rem + 0.65vw, 1.55rem);
+      --body-size: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+      --label-size: clamp(0.75rem, 0.72rem + 0.12vw, 0.8125rem);
+
+      /* Formes atelier */
+      --rounded: 0;
+      --rounded-lg: 0;
+      --rounded-full: 0;
+
+      /* Filets et suivi */
+      --rule-ink: 1px solid var(--outline);
+      --rule-stone: 1px solid var(--outline-variant);
+      --rule-coral: 2px solid var(--secondary);
+      --label-tracking: 0.2em;
+
+      /* Échelle d'espacement */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6.5rem;
+
+      /* Animation */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 480ms;
+
+      /* Dimensions de navigation */
+      --nav-height: 4rem;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--nav-height) + var(--space-lg));
+    }
+    body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      font-weight: 400;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    /* Focus accessible */
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Typographie éditoriale */
+    h1, h2, h3, p, ul, ol, blockquote, figure {
+      margin: 0;
+    }
+
+    .display {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--display-size);
+      line-height: 1.06;
+      letter-spacing: -0.015em;
+      font-optical-sizing: auto;
+      color: var(--on-surface);
+    }
+    .display em, .section-title em, .statement-quote em {
+      font-style: italic;
+      color: var(--secondary);
+    }
+
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--headline-size);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-optical-sizing: auto;
+      color: var(--on-surface);
+      max-width: 22ch;
+    }
+
+    .subhead {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--subhead-size);
+      line-height: 1.25;
+      color: var(--on-surface);
+    }
+
+    .label {
+      font-family: var(--font-label);
+      font-weight: 400;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      color: var(--secondary);
+    }
+
+    .lede {
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: clamp(1.1875rem, 1.05rem + 0.55vw, 1.4375rem);
+      line-height: 1.6;
+      color: var(--on-surface);
+      max-width: 52ch;
+    }
+
+    .prose {
+      max-width: 60ch;
+      color: var(--on-surface-variant);
+    }
+
+    /* Menu fixe en haut */
+    .site-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: var(--nav-height);
+      background-color: var(--nav-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: var(--rule-stone);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: var(--space-xl);
+      gap: var(--space-md);
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      text-decoration: none;
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      white-space: nowrap;
+      min-height: 44px;
+    }
+    .nav-dot {
+      width: 0.45rem;
+      height: 0.45rem;
+      background-color: var(--secondary);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-links::-webkit-scrollbar { display: none; }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding-inline: var(--space-xs);
+      text-decoration: none;
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--on-surface-variant);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+    }
+    .nav-link:hover {
+      color: var(--on-surface);
+    }
+    .nav-link.is-active {
+      color: var(--secondary);
+      border-bottom-color: var(--secondary);
+    }
+
+    .nav-mobile-right {
+      display: none;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .nav-current-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--secondary);
+      white-space: nowrap;
+    }
+    .nav-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0 var(--space-md);
+      background: transparent;
+      border: var(--rule-ink);
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+    }
+    .nav-toggle-btn:hover {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    /* Tiroir mobile plein écran */
+    .mobile-drawer {
+      position: fixed;
+      inset: var(--nav-height) 0 0 0;
+      z-index: 95;
+      background-color: var(--background);
+      border-top: var(--rule-ink);
+      padding: var(--space-xl) var(--space-lg);
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .mobile-drawer.is-open {
+      display: flex;
+    }
+    .mobile-drawer-link {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-md);
+      min-height: 48px;
+      padding: var(--space-sm) 0;
+      border-bottom: var(--rule-stone);
+      text-decoration: none;
+      color: var(--on-surface);
+      font-family: var(--font-headline);
+      font-size: 1.35rem;
+      transition: color var(--dur-micro) var(--ease-out);
+    }
+    .mobile-drawer-link span.drawer-idx {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      letter-spacing: var(--label-tracking);
+      color: var(--secondary);
+    }
+    .mobile-drawer-link.is-active {
+      color: var(--secondary);
+    }
+
+    /* Mise en page principale : beaucoup d'air, une idée par écran */
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin-inline: auto;
+      padding-inline: var(--space-xl);
+    }
+    .container * { min-width: 0; }
+
+    .screen-section {
+      padding-block: var(--space-3xl);
+      border-top: var(--rule-stone);
+    }
+
+    .screen-hero {
+      min-height: calc(100svh - var(--nav-height));
+      margin-top: var(--nav-height);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-block: var(--space-2xl) var(--space-xl);
+    }
+
+    .screen-statement {
+      min-height: 78svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: var(--space-3xl);
+      border-top: var(--rule-ink);
+      border-bottom: var(--rule-ink);
+    }
+
+    /* Ouverture */
+    .hero-top-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: var(--rule-ink);
+    }
+    .hero-main {
+      padding-block: var(--space-2xl) var(--space-xl);
+      display: grid;
+      gap: var(--space-xl);
+    }
+    .hero-speakers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+      align-items: baseline;
+      padding-top: var(--space-md);
+      border-top: var(--rule-stone);
+    }
+    .speaker-name {
+      font-family: var(--font-headline);
+      font-size: var(--subhead-size);
+      color: var(--on-surface);
+    }
+    .hero-hook {
+      border-left: var(--rule-coral);
+      padding-left: var(--space-lg);
+      max-width: 48ch;
+      color: var(--on-surface-variant);
+      font-size: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem);
+      line-height: 1.55;
+    }
+    .hero-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding-top: var(--space-lg);
+      border-top: var(--rule-stone);
+    }
+    .scroll-cue {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      text-decoration: none;
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: var(--label-tracking);
+      border-bottom: 1px solid transparent;
+      transition: color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+    }
+    .scroll-cue:hover {
+      color: var(--secondary);
+      border-bottom-color: var(--secondary);
+    }
+
+    /* En-tête de section */
+    .section-head {
+      display: grid;
+      gap: var(--space-md);
+      margin-bottom: var(--space-2xl);
+    }
+    .section-kicker {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    .section-kicker-line {
+      height: 1px;
+      flex: 1;
+      background-color: var(--outline-variant);
+    }
+
+    /* Grille de chiffres clés (style Atelier : filet supérieur, pas de boîte) */
+    .figures-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-xl);
+      margin-block: var(--space-2xl);
+    }
+    .ruled-top {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-md);
+      display: grid;
+      gap: var(--space-xs);
+    }
+    .ruled-top.is-coral {
+      border-top: var(--rule-coral);
+    }
+    .figure-value {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: clamp(2.25rem, 1.7rem + 2vw, 3.25rem);
+      line-height: 1.05;
+      font-variant-numeric: lining-nums tabular-nums;
+      color: var(--on-surface);
+    }
+    .figure-value.is-coral {
+      color: var(--secondary);
+    }
+    .figure-note {
+      color: var(--on-surface-variant);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    /* Grilles asymétriques et colonnes éditoriales */
+    .split-editorial {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+
+    .triplet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: var(--space-xl);
+      margin-top: var(--space-xl);
+    }
+
+    /* Panneaux sans ombre ni arrondi */
+    .atelier-panel {
+      background-color: var(--surface-container-low);
+      border-top: var(--rule-ink);
+      padding: var(--space-xl);
+    }
+
+    /* Onglets interactifs : Ce que le patient emporte */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      border-bottom: var(--rule-stone);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-xl);
+    }
+    .tab-btn {
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      background: transparent;
+      border: var(--rule-stone);
+      color: var(--on-surface-variant);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+    }
+    .tab-btn:hover {
+      color: var(--on-surface);
+      border-color: var(--outline);
+    }
+    .tab-btn[aria-selected="true"] {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+
+    .deliverable-view {
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .fictional-badge {
+      display: inline-block;
+      font-family: var(--font-label);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--secondary);
+      border: 1px solid var(--secondary);
+      padding: var(--space-xs) var(--space-sm);
+      justify-self: start;
+    }
+    .sample-sheet {
+      background-color: var(--background);
+      border: var(--rule-stone);
+      border-top: var(--rule-coral);
+      padding: var(--space-xl);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .sample-list {
+      padding-left: var(--space-lg);
+      display: grid;
+      gap: var(--space-xs);
+      color: var(--on-surface-variant);
+    }
+    .validation-stamp {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--positive);
+      padding-top: var(--space-sm);
+      border-top: var(--rule-stone);
+    }
+
+    /* Section 4 : Citation plein écran */
+    .statement-quote {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: clamp(2.6rem, 1.5rem + 4.8vw, 5.4rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      max-width: 16ch;
+      color: var(--on-surface);
+    }
+    .statement-sub {
+      margin-top: var(--space-xl);
+      padding-top: var(--space-md);
+      border-top: var(--rule-stone);
+      max-width: 44ch;
+      color: var(--on-surface-variant);
+    }
+
+    /* Section 5 : Piliers & Bascule Système */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      gap: var(--space-xl);
+    }
+    .pillar-card {
+      border-top: var(--rule-ink);
+      padding-top: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+      align-content: start;
+    }
+    .pillar-card.is-priority {
+      border-top: var(--rule-coral);
+      background-color: var(--surface-container-low);
+      padding: var(--space-lg);
+    }
+    .pillar-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .pillar-tag {
+      font-family: var(--font-label);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--secondary);
+    }
+
+    .system-toggle-box {
+      margin-top: var(--space-2xl);
+      background-color: var(--surface-container-low);
+      border-top: var(--rule-ink);
+      padding: var(--space-xl);
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    .toggle-btn {
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      border: var(--rule-ink);
+      background: transparent;
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+    }
+    .toggle-btn[aria-pressed="true"] {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .system-outcomes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: var(--rule-stone);
+    }
+
+    /* Section 6 : Limites & Réglementation */
+    .compliance-block {
+      margin-top: var(--space-2xl);
+      padding: var(--space-xl);
+      background-color: var(--surface-container-low);
+      border-left: var(--rule-coral);
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .compliance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-xl);
+    }
+
+    /* Section 7 : Lundi matin & Prompts copiables */
+    .prompts-stack {
+      display: grid;
+      gap: var(--space-xl);
+    }
+    .action-wrapper {
+      container-type: inline-size;
+      border-top: var(--rule-ink);
+      padding-top: var(--space-lg);
+    }
+    .action-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+    @container (max-width: 680px) {
+      .action-inner {
+        grid-template-columns: 1fr;
+      }
+    }
+    .prompt-box {
+      background-color: var(--surface-container-low);
+      border: var(--rule-stone);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .prompt-text {
+      font-family: var(--font-body);
+      font-size: 0.96rem;
+      line-height: 1.6;
+      color: var(--on-surface);
+      white-space: pre-line;
+      border-left: 2px solid var(--outline-variant);
+      padding-left: var(--space-md);
+    }
+    .prompt-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      background-color: var(--primary);
+      color: var(--on-primary);
+      border: 1px solid var(--primary);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+    }
+    .btn-primary:hover {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+      color: var(--on-secondary);
+    }
+    .btn-primary.is-copied {
+      background-color: var(--positive);
+      border-color: var(--positive);
+      color: var(--on-primary);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-lg);
+      background-color: transparent;
+      color: var(--on-surface);
+      border: var(--rule-ink);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+    }
+    .btn-secondary:hover {
+      background-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .copy-feedback {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--positive);
+      min-height: 1.2em;
+    }
+
+    /* Section 9 : À vous de construire */
+    .adia-card {
+      background-color: var(--surface-container-low);
+      border-top: var(--rule-coral);
+      padding: var(--space-xl);
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .adia-url-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-md);
+      padding-block: var(--space-md);
+      border-top: var(--rule-stone);
+      border-bottom: var(--rule-stone);
+    }
+    .adia-url-text {
+      font-family: var(--font-headline);
+      font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+      color: var(--on-surface);
+      letter-spacing: -0.01em;
+      word-break: break-word;
+    }
+
+    /* Pied de page */
+    .site-footer {
+      border-top: var(--rule-ink);
+      padding-block: var(--space-2xl);
+      margin-top: var(--space-xl);
+    }
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .footer-note {
+      color: var(--on-surface);
+      font-family: var(--font-headline);
+      font-style: italic;
+      font-size: 1.05rem;
+    }
+
+    /* Révélation au défilement */
+    .reveal {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity var(--dur-long) var(--ease-out), transform var(--dur-long) var(--ease-out);
+    }
+    html.js-anim .reveal:not(.is-visible) {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .stagger-1 { transition-delay: 60ms; }
+    .stagger-2 { transition-delay: 140ms; }
+    .stagger-3 { transition-delay: 220ms; }
+
+    /* Adaptatif tablette / mobile */
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .nav-mobile-right { display: inline-flex; }
+      .split-editorial { grid-template-columns: 1fr; gap: var(--space-xl); }
+    }
+
+    @media (max-width: 640px) {
+      .site-nav { padding-inline: var(--space-md); }
+      .container { padding-inline: var(--space-lg); }
+      .screen-section { padding-block: var(--space-2xl); }
+      .screen-hero { padding-block: var(--space-xl) var(--space-lg); }
+      .screen-statement { min-height: 62svh; padding-block: var(--space-2xl); }
+      .atelier-panel, .sample-sheet, .system-toggle-box, .compliance-block, .adia-card, .prompt-box {
+        padding: var(--space-lg);
+      }
+      .nav-current-label { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      html.js-anim .reveal:not(.is-visible) {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Menu fixe supérieur -->
+  <nav id="site-nav" class="site-nav" aria-label="Navigation des rubriques">
+    <a href="#ouverture" class="nav-brand">
+      <span class="nav-dot" aria-hidden="true"></span>
+      <span>ADF 2026</span>
+    </a>
+
+    <ul class="nav-links" id="desktop-nav-links">
+      <li><a href="#ouverture" class="nav-link is-active" data-nav="ouverture">Ouverture</a></li>
+      <li><a href="#variabilite" class="nav-link" data-nav="variabilite">Variabilité</a></li>
+      <li><a href="#consultation" class="nav-link" data-nav="consultation">Consultation</a></li>
+      <li><a href="#validation" class="nav-link" data-nav="validation">Validation</a></li>
+      <li><a href="#piliers" class="nav-link" data-nav="piliers">Piliers</a></li>
+      <li><a href="#limites" class="nav-link" data-nav="limites">Limites &amp; RGPD</a></li>
+      <li><a href="#lundi-matin" class="nav-link" data-nav="lundi-matin">Lundi matin</a></li>
+      <li><a href="#conclusion" class="nav-link" data-nav="conclusion">Temps humain</a></li>
+      <li><a href="#agir" class="nav-link" data-nav="agir">ADIA</a></li>
+    </ul>
+
+    <div class="nav-mobile-right">
+      <span class="nav-current-label" id="nav-active-name">Ouverture</span>
+      <button type="button" class="nav-toggle-btn" id="nav-drawer-btn" aria-expanded="false" aria-controls="mobile-drawer" onclick="toggleMobileMenu()">
+        <span>Rubriques</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Tiroir de navigation mobile -->
+  <div id="mobile-drawer" class="mobile-drawer" role="dialog" aria-label="Plan des rubriques">
+    <a href="#ouverture" class="mobile-drawer-link is-active" data-nav="ouverture" onclick="closeMobileMenu()"><span>Ouverture</span><span class="drawer-idx">01</span></a>
+    <a href="#variabilite" class="mobile-drawer-link" data-nav="variabilite" onclick="closeMobileMenu()"><span>Le vrai problème : la variabilité</span><span class="drawer-idx">02</span></a>
+    <a href="#consultation" class="mobile-drawer-link" data-nav="consultation" onclick="closeMobileMenu()"><span>Consultation &amp; supports patient</span><span class="drawer-idx">03</span></a>
+    <a href="#validation" class="mobile-drawer-link" data-nav="validation" onclick="closeMobileMenu()"><span>Règle de validation</span><span class="drawer-idx">04</span></a>
+    <a href="#piliers" class="mobile-drawer-link" data-nav="piliers" onclick="closeMobileMenu()"><span>Les piliers du cabinet structuré</span><span class="drawer-idx">05</span></a>
+    <a href="#limites" class="mobile-drawer-link" data-nav="limites" onclick="closeMobileMenu()"><span>Limites de l’IA &amp; RGPD</span><span class="drawer-idx">06</span></a>
+    <a href="#lundi-matin" class="mobile-drawer-link" data-nav="lundi-matin" onclick="closeMobileMenu()"><span>À essayer lundi matin</span><span class="drawer-idx">07</span></a>
+    <a href="#conclusion" class="mobile-drawer-link" data-nav="conclusion" onclick="closeMobileMenu()"><span>Le temps humain</span><span class="drawer-idx">08</span></a>
+    <a href="#agir" class="mobile-drawer-link" data-nav="agir" onclick="closeMobileMenu()"><span>À vous de construire</span><span class="drawer-idx">09</span></a>
+  </div>
+
+  <!-- 1. Ouverture plein écran -->
+  <header id="ouverture" class="screen-hero container" data-section="ouverture" data-label="Ouverture">
+    <div class="hero-top-meta">
+      <span class="label">Congrès ADF 2026 · Synthèse participants</span>
+      <span class="label">Une manière différente</span>
+    </div>
+
+    <div class="hero-main">
+      <h1 class="display">
+        Intelligence artificielle au cabinet : mode ou vraie <em>révolution</em> ?
+      </h1>
+
+      <div class="hero-speakers">
+        <span class="label">Orateurs</span>
+        <span class="speaker-name">Dr Laurent ALLOUCHE</span>
+        <span class="speaker-name">Dr Jacques BITTON</span>
+      </div>
+
+      <p class="hero-hook">
+        « L’IA redéfinit la pratique dentaire avec un impact durable. Elle ne remplacera pas les dentistes — mais les dentistes qui l’utilisent remplaceront les autres. »
+      </p>
+    </div>
+
+    <div class="hero-foot">
+      <span class="label">Ce que vos patients ressentent</span>
+      <a href="#variabilite" class="scroll-cue">
+        <span>Commencer la lecture</span>
+        <i data-lucide="arrow-down" width="16" height="16" aria-hidden="true"></i>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- 2. Le vrai problème : la variabilité -->
+    <section id="variabilite" class="screen-section container" data-section="variabilite" data-label="Variabilité">
+      <div class="section-head reveal">
+        <div class="section-kicker">
+          <span class="label">01 · Le constat</span>
+          <span class="section-kicker-line" aria-hidden="true"></span>
+        </div>
+        <h2 class="section-title">Le vrai problème n’est pas l’outil. C’est la <em>variabilité</em>.</h2>
+        <p class="lede">
+          Une profession en croissance rapide face à des patients mieux informés, qui comparent, questionnent et attendent de la clarté.
+        </p>
+      </div>
+
+      <div class="figures-grid">
+        <div class="ruled-top reveal stagger-1">
+          <span class="label">En activité · 01/01/26</span>
+          <span class="figure-value" data-count-target="48700" data-count-suffix="" data-count-decimals="0">48 700</span>
+          <p class="figure-note">Chirurgiens-dentistes en activité (les prévisions de 2021 tablaient sur 45 000 en 2030).</p>
+        </div>
+        <div class="ruled-top is-coral reveal stagger-2">
+          <span class="label">Progression annuelle</span>
+          <span class="figure-value is-coral" data-count-prefix="+" data-count-target="2.2" data-count-suffix=" %" data-count-decimals="1">+2,2 %</span>
+          <p class="figure-note">Hausse de la démographie professionnelle en un an.</p>
+        </div>
+        <div class="ruled-top reveal stagger-3">
+          <span class="label">Depuis 2012</span>
+          <span class="figure-value" data-count-prefix="+" data-count-target="20.3" data-count-suffix=" %" data-count-decimals="1">+20,3 %</span>
+          <p class="figure-note">Près de 30 % de praticiens en plus à l’horizon de la décennie.</p>
+        </div>
+      </div>
+
+      <div class="triplet-grid">
+        <article class="ruled-top reveal stagger-1">
+          <span class="label">Inconstance 01</span>
+          <h3 class="subhead">Variabilité de communication</h3>
+          <p class="prose">
+            Des explications différentes selon l’heure de la journée, la fatigue ou le rythme du fauteuil.
+          </p>
+        </article>
+        <article class="ruled-top reveal stagger-2">
+          <span class="label">Inconstance 02</span>
+          <h3 class="subhead">Variabilité documentaire</h3>
+          <p class="prose">
+            Des comptes rendus incomplets ou inégaux selon le contexte, difficiles à relire à froid.
+          </p>
+        </article>
+        <article class="ruled-top reveal stagger-3">
+          <span class="label">Inconstance 03</span>
+          <h3 class="subhead">Variabilité décisionnelle</h3>
+          <p class="prose">
+            Des plans de traitement présentés de manière non homogène d’un patient ou d’un praticien à l’autre.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 3. La consultation qui disparaît, puis ce que le patient emporte -->
+    <section id="consultation" class="screen-section container" data-section="consultation" data-label="Consultation">
+      <div class="split-editorial">
+        <div class="section-head reveal">
+          <div class="section-kicker">
+            <span class="label">02 · La première consultation</span>
+            <span class="section-kicker-line" aria-hidden="true"></span>
+          </div>
+          <h2 class="section-title">Le temps qui manque. Ce que le patient <em>emporte</em>.</h2>
+          <p class="lede">
+            Les plages de consultation se densifient, les démarches administratives s’accumulent, et le temps disponible par patient se réduit.
+          </p>
+          <p class="prose">
+            L’équation devient intenable — sauf à changer d’outil. Avec l’IA comme copilote, la première consultation redevient claire, structurée et éthique.
+          </p>
+        </div>
+
+        <div class="atelier-panel reveal stagger-1">
+          <div class="tab-bar" role="tablist" aria-label="Documents remis après la consultation">
+            <button type="button" class="tab-btn" role="tab" id="tab-cr" aria-selected="true" aria-controls="panel-deliverable" onclick="selectDeliverable('cr')">Compte rendu patient</button>
+            <button type="button" class="tab-btn" role="tab" id="tab-corresp" aria-selected="false" aria-controls="panel-deliverable" onclick="selectDeliverable('corresp')">Courrier correspondant</button>
+            <button type="button" class="tab-btn" role="tab" id="tab-web" aria-selected="false" aria-controls="panel-deliverable" onclick="selectDeliverable('web')">Page web personnelle</button>
+          </div>
+
+          <div id="panel-deliverable" class="deliverable-view" role="tabpanel" aria-labelledby="tab-cr">
+            <span class="fictional-badge" id="deliv-badge">Exemple fictif · données anonymisées</span>
+            <h3 class="subhead" id="deliv-title">Compte rendu remis au patient</h3>
+            <p class="prose" id="deliv-summary">
+              Le patient retrouve par écrit le diagnostic, les options thérapeutiques discutées au fauteuil et les prochaines étapes.
+            </p>
+            <div class="sample-sheet">
+              <span class="label" id="deliv-sample-kicker">Aperçu structuré</span>
+              <ul class="sample-list" id="deliv-sample-points">
+                <li>Motif et bilan de la séance : évaluation d’une molaire fracturée (cas fictif).</li>
+                <li>Options exposées : conservation sous couronne si tenon possible, ou extraction et remplacement implantaire.</li>
+                <li>Prochaine étape : cliché complémentaire et temps de réflexion avant validation du projet.</li>
+              </ul>
+              <span class="validation-stamp" id="deliv-stamp">Document préparé avec l’IA · relu et validé par le praticien</span>
+            </div>
+          </div>
+
+          <p class="prose" style="margin-top: var(--space-lg);">
+            Selon l’étape du parcours, l’IA prépare aussi une fiche de consignes préopératoires, des conseils après l’intervention ou un courrier de suivi.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. En très grand : L'IA écrit. Le praticien relit et valide. -->
+    <section id="validation" class="screen-statement container" data-section="validation" data-label="Validation">
+      <div class="reveal">
+        <span class="label">03 · Principe non négociable</span>
+        <h2 class="statement-quote" style="margin-top: var(--space-md);">
+          L’IA écrit. Le praticien <em>relit</em> et valide.
+        </h2>
+        <p class="statement-sub">
+          Chaque compte rendu, chaque courrier et chaque consigne porte la signature clinique du chirurgien-dentiste. L’outil propose une mise en forme ; le jugement thérapeutique vous appartient intégralement.
+        </p>
+      </div>
+    </section>
+
+    <!-- 5. Les piliers du cabinet structuré : procédures, planning, pilotage -->
+    <section id="piliers" class="screen-section container" data-section="piliers" data-label="Piliers">
+      <div class="section-head reveal">
+        <div class="section-kicker">
+          <span class="label">04 · Passer des habitudes au système</span>
+          <span class="section-kicker-line" aria-hidden="true"></span>
+        </div>
+        <h2 class="section-title">Les <span data-count-target="6" data-count-decimals="0">6</span> <em>piliers</em> d’un cabinet structuré.</h2>
+        <p class="lede">
+          Un cabinet ne devrait pas reposer uniquement sur des habitudes tacites. Procédures, planning et pilotage transforment l’équipe en système reproductible.
+        </p>
+      </div>
+
+      <div class="pillars-grid">
+        <article class="pillar-card is-priority reveal stagger-1">
+          <div class="pillar-head">
+            <span class="label">Pilier 03</span>
+            <span class="pillar-tag">Cœur opérationnel</span>
+          </div>
+          <h3 class="subhead">Procédures (SOP)</h3>
+          <p class="prose">
+            Procédures opérationnelles standardisées pour l’assistante : préparation de salle, gestion des suites opératoires et protocoles de stérilisation.
+          </p>
+        </article>
+
+        <article class="pillar-card is-priority reveal stagger-2">
+          <div class="pillar-head">
+            <span class="label">Pilier 04</span>
+            <span class="pillar-tag">Cœur opérationnel</span>
+          </div>
+          <h3 class="subhead">Planning</h3>
+          <p class="prose">
+            Optimisation du temps de fauteuil, gestion cohérente des créneaux et anticipation des urgences sans désorganiser la journée.
+          </p>
+        </article>
+
+        <article class="pillar-card is-priority reveal stagger-3">
+          <div class="pillar-head">
+            <span class="label">Pilier 06</span>
+            <span class="pillar-tag">Cœur opérationnel</span>
+          </div>
+          <h3 class="subhead">Pilotage</h3>
+          <p class="prose">
+            Suivi d’indicateurs clés : taux de conversion, délai décisionnel moyen, satisfaction patient. Ce que vous ne mesurez pas, vous ne pouvez pas l’améliorer.
+          </p>
+        </article>
+
+        <article class="pillar-card reveal stagger-1">
+          <div class="pillar-head">
+            <span class="label">Pilier 01</span>
+          </div>
+          <h3 class="subhead">Parcours du patient</h3>
+          <p class="prose">
+            De la prise de contact au départ : chaque étape est définie, documentée et reproductible — indépendamment du praticien présent.
+          </p>
+        </article>
+
+        <article class="pillar-card reveal stagger-2">
+          <div class="pillar-head">
+            <span class="label">Pilier 02</span>
+          </div>
+          <h3 class="subhead">Première consultation</h3>
+          <p class="prose">
+            Une trame structurée qui guide le praticien et rassure le patient, au-delà du seul geste clinique.
+          </p>
+        </article>
+
+        <article class="pillar-card reveal stagger-3">
+          <div class="pillar-head">
+            <span class="label">Pilier 05</span>
+          </div>
+          <h3 class="subhead">Accompagnement patient</h3>
+          <p class="prose">
+            Pas de relance commerciale : un accompagnement humain, structuré, qui aide le patient à avancer avec confiance dans sa décision.
+          </p>
+        </article>
+      </div>
+
+      <div class="system-toggle-box reveal">
+        <div>
+          <span class="label">Le test du cabinet · « Si quelqu’un part… »</span>
+          <h3 class="subhead" style="margin-top: var(--space-xs);">Que se passe-t-il vraiment quand un collaborateur ou une assistante s’absente ?</h3>
+        </div>
+
+        <div class="toggle-row" role="group" aria-label="Comparer le mode de fonctionnement du cabinet">
+          <button type="button" class="toggle-btn" id="btn-mode-habits" aria-pressed="true" onclick="setCabinetMode('habits')">Cabinet par habitudes tacites</button>
+          <button type="button" class="toggle-btn" id="btn-mode-system" aria-pressed="false" onclick="setCabinetMode('system')">Cabinet par système (SOP)</button>
+        </div>
+
+        <div class="system-outcomes" id="cabinet-outcomes">
+          <div>
+            <span class="label" id="out-label-1">Désorganisation</span>
+            <p class="prose" id="out-text-1">Les repères disparaissent. Personne ne sait exactement qui fait quoi, ni comment.</p>
+          </div>
+          <div>
+            <span class="label" id="out-label-2">Perte de repères</span>
+            <p class="prose" id="out-text-2">Les habitudes tacites s’effacent avec la personne qui les portait au quotidien.</p>
+          </div>
+          <div>
+            <span class="label" id="out-label-3">Erreurs</span>
+            <p class="prose" id="out-text-3">Des étapes sont oubliées, des procédures mal appliquées, des patients moins bien pris en charge.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Limites de l'IA et réglementation : RGPD, HDS, consentement -->
+    <section id="limites" class="screen-section container" data-section="limites" data-label="Limites & RGPD">
+      <div class="section-head reveal">
+        <div class="section-kicker">
+          <span class="label">05 · Vigilance clinique et cadre légal</span>
+          <span class="section-kicker-line" aria-hidden="true"></span>
+        </div>
+        <h2 class="section-title">Connaître les limites. Protéger les <em>données</em>.</h2>
+        <p class="lede">
+          L’IA n’est jamais une source unique. Son usage au cabinet impose rigueur scientifique et conformité réglementaire.
+        </p>
+      </div>
+
+      <div class="triplet-grid">
+        <article class="ruled-top is-coral reveal stagger-1">
+          <span class="label">Limite 01</span>
+          <h3 class="subhead">Elle peut se tromper</h3>
+          <p class="prose">
+            Des faits incorrects, des dates erronées, des calculs faux — exprimés avec une confiance déconcertante.
+          </p>
+        </article>
+        <article class="ruled-top is-coral reveal stagger-2">
+          <span class="label">Limite 02</span>
+          <h3 class="subhead">Elle peut halluciner</h3>
+          <p class="prose">
+            Elle peut inventer des sources, des noms ou des citations qui n’existent pas.
+          </p>
+        </article>
+        <article class="ruled-top reveal stagger-3">
+          <span class="label">Limite 03</span>
+          <h3 class="subhead">Elle doit être vérifiée</h3>
+          <p class="prose">
+            Relisez toujours. Vérifiez les faits importants. Votre jugement clinique reste irremplaçable.
+          </p>
+        </article>
+      </div>
+
+      <div class="compliance-block reveal">
+        <div>
+          <span class="label">Cadre réglementaire au cabinet</span>
+          <h3 class="subhead" style="margin-top: var(--space-xs);">RGPD, hébergement HDS et consentement</h3>
+        </div>
+        <div class="compliance-grid">
+          <div>
+            <span class="label">RGPD · Anonymisation</span>
+            <p class="prose">
+              Ne saisissez aucune donnée directement identifiante (nom, date de naissance, coordonnées) dans un outil non conforme : travaillez sur des éléments anonymisés.
+            </p>
+          </div>
+          <div>
+            <span class="label">HDS · Hébergement de Santé</span>
+            <p class="prose">
+              Dès lors que des données de santé nominatives sont stockées ou traitées, utilisez exclusivement des solutions certifiées Hébergeur de Données de Santé (HDS).
+            </p>
+          </div>
+          <div>
+            <span class="label">Consentement &amp; transparence</span>
+            <p class="prose">
+              Informez le patient de l’appui d’outils d’assistance rédactionnelle et recueillez son consentement selon les usages du cabinet.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. À essayer lundi matin : 4 actions concrètes + prompts prêts à l'emploi -->
+    <section id="lundi-matin" class="screen-section container" data-section="lundi-matin" data-label="Lundi matin">
+      <div class="section-head reveal">
+        <div class="section-kicker">
+          <span class="label">06 · Passage à l’action</span>
+          <span class="section-kicker-line" aria-hidden="true"></span>
+        </div>
+        <h2 class="section-title">À essayer <em>lundi</em> matin, sans bouleverser le cabinet.</h2>
+        <p class="lede">
+          Quatre actions concrètes issues de la pratique présentée, avec pour chacune un prompt prêt à copier et à adapter sur des données anonymisées.
+        </p>
+      </div>
+
+      <div class="prompts-stack">
+        <!-- Action 1 -->
+        <article class="action-wrapper reveal">
+          <div class="action-inner">
+            <div style="display: grid; gap: var(--space-sm);">
+              <span class="label">Action 01 · Écrire plus vite</span>
+              <h3 class="subhead">Rédiger un compte rendu patient structuré</h3>
+              <p class="prose">
+                À la fin d’une première consultation, transformez vos notes anonymisées en synthèse claire : diagnostic, options et suite du parcours.
+              </p>
+            </div>
+            <div class="prompt-box">
+              <span class="label">Prompt prêt à l’emploi · Cas fictif anonymisé</span>
+              <p class="prompt-text" id="prompt-1">Tu es l’assistant rédactionnel d’un chirurgien-dentiste. Rédige un compte rendu patient clair, rassurant et sans jargon à partir de ces notes anonymisées (cas fictif) :
+- Motif : sensibilité au froid secteur bas droit.
+- Constat clinique : reprise de carie sous ancienne restauration.
+- Options discutées : dépose et reconstitution collée, ou couronne si perte tissulaire importante.
+- Prochaine étape : radio rétro-alvéolaire de contrôle et validation au prochain rendez-vous.
+Structure en trois parties : Diagnostic, Options envisagées, Prochaines étapes. Rappelle en fin de texte que ce document a été validé par le praticien.</p>
+              <div class="prompt-actions">
+                <button type="button" class="btn-primary" id="copy-btn-1" onclick="copyPrompt('prompt-1', 'copy-btn-1', 'feedback-1')">
+                  <i data-lucide="copy" width="16" height="16" aria-hidden="true"></i>
+                  <span>Copier le prompt</span>
+                </button>
+                <span class="copy-feedback" id="feedback-1" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Action 2 -->
+        <article class="action-wrapper reveal">
+          <div class="action-inner">
+            <div style="display: grid; gap: var(--space-sm);">
+              <span class="label">Action 02 · Fluidifier la coordination</span>
+              <h3 class="subhead">Préparer le courrier au correspondant</h3>
+              <p class="prose">
+                Transmettez en quelques secondes une synthèse clinique structurée au confrère, avec le projet de soins et le rôle de chacun.
+              </p>
+            </div>
+            <div class="prompt-box">
+              <span class="label">Prompt prêt à l’emploi · Cas fictif anonymisé</span>
+              <p class="prompt-text" id="prompt-2">Rédige un courrier confraternel concis et courtois adressé à un confrère spécialiste (cas fictif, patient anonymisé : M. X).
+Contexte : reprise endodontique nécessaire avant réalisation d’une restauration prothétique sur 16.
+Demande : avis endodontique et traitement si indiqué, avant retour au cabinet pour la phase coronaire.
+Structure attendue : Synthèse clinique, Projet de soins global, Rôle de chacun, Formule confraternelle. Aucune donnée nominative.</p>
+              <div class="prompt-actions">
+                <button type="button" class="btn-primary" id="copy-btn-2" onclick="copyPrompt('prompt-2', 'copy-btn-2', 'feedback-2')">
+                  <i data-lucide="copy" width="16" height="16" aria-hidden="true"></i>
+                  <span>Copier le prompt</span>
+                </button>
+                <span class="copy-feedback" id="feedback-2" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Action 3 -->
+        <article class="action-wrapper reveal">
+          <div class="action-inner">
+            <div style="display: grid; gap: var(--space-sm);">
+              <span class="label">Action 03 · S’organiser</span>
+              <h3 class="subhead">Formaliser une SOP pour l’assistante</h3>
+              <p class="prose">
+                Transformez une habitude orale du cabinet en procédure opérationnelle standardisée : préparation de salle, protocole de stérilisation ou accueil.
+              </p>
+            </div>
+            <div class="prompt-box">
+              <span class="label">Prompt prêt à l’emploi · Protocole interne</span>
+              <p class="prompt-text" id="prompt-3">Aide-moi à rédiger une procédure opérationnelle standardisée (SOP) destinée à l’assistante dentaire pour la préparation de salle avant un acte de chirurgie simple.
+Présente la procédure sous forme de check-list chronologique en 3 temps : Avant l’entrée du patient, Vérification du plateau technique, Remise en état après l’acte.
+Ton direct, concret, étapes numérotées et vérifiables en moins de deux minutes. Laisse des champs [À préciser selon le protocole du cabinet] pour les références de matériel.</p>
+              <div class="prompt-actions">
+                <button type="button" class="btn-primary" id="copy-btn-3" onclick="copyPrompt('prompt-3', 'copy-btn-3', 'feedback-3')">
+                  <i data-lucide="copy" width="16" height="16" aria-hidden="true"></i>
+                  <span>Copier le prompt</span>
+                </button>
+                <span class="copy-feedback" id="feedback-3" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Action 4 (issue explicitement des sources : consignes pré/post-opératoires + traduire et adapter) -->
+        <article class="action-wrapper reveal">
+          <div class="action-inner">
+            <div style="display: grid; gap: var(--space-sm);">
+              <span class="label">Action 04 · Traduire et adapter</span>
+              <h3 class="subhead">Rédiger et adapter une fiche de consignes pré ou post-opératoires</h3>
+              <p class="prose">
+                Préparez des conseils avant ou après l’intervention en langage clair — et adaptez ou traduisez la fiche selon les besoins du patient.
+              </p>
+            </div>
+            <div class="prompt-box">
+              <span class="label">Prompt prêt à l’emploi · Consignes patient</span>
+              <p class="prompt-text" id="prompt-4">Rédige une fiche de conseils après une extraction dentaire simple, destinée à être relue par le patient chez lui.
+Consignes à couvrir : gestion du caillot dans les 24 premières heures, alimentation, hygiène douce et signes devant amener à recontacter le cabinet.
+Utilise des phrases courtes, un ton rassurant, sans aucun nom de médicament ni posologie (laisser un encadré [Selon ordonnance remise par le praticien]). Propose ensuite une version adaptée en anglais simple si le patient est anglophone.</p>
+              <div class="prompt-actions">
+                <button type="button" class="btn-primary" id="copy-btn-4" onclick="copyPrompt('prompt-4', 'copy-btn-4', 'feedback-4')">
+                  <i data-lucide="copy" width="16" height="16" aria-hidden="true"></i>
+                  <span>Copier le prompt</span>
+                </button>
+                <span class="copy-feedback" id="feedback-4" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 8. Citation de conclusion sur le temps humain -->
+    <section id="conclusion" class="screen-statement container" data-section="conclusion" data-label="Temps humain">
+      <div class="reveal">
+        <span class="label">07 · Conclusion</span>
+        <blockquote class="statement-quote" style="margin-top: var(--space-md);">
+          Confier la mise en forme à l’outil, pour rendre au cabinet le temps <em>humain</em>.
+        </blockquote>
+        <p class="statement-sub">
+          Écouter le patient, expliquer avec clarté, décider en conscience : c’est là que votre présence clinique fait toute la différence.
+        </p>
+      </div>
+    </section>
+
+    <!-- 9. À vous de construire : formations ADIA, contact et comptes Instagram -->
+    <section id="agir" class="screen-section container" data-section="agir" data-label="ADIA">
+      <div class="section-head reveal">
+        <div class="section-kicker">
+          <span class="label">08 · Prolongement</span>
+          <span class="section-kicker-line" aria-hidden="true"></span>
+        </div>
+        <h2 class="section-title">À vous de <em>construire</em>.</h2>
+        <p class="lede">
+          Prolongez la conférence et structurez les usages de l’intelligence artificielle au sein de votre équipe.
+        </p>
+      </div>
+
+      <div class="adia-card reveal">
+        <div>
+          <span class="label">Formations ADIA Académie</span>
+          <p class="prose" style="margin-top: var(--space-xs);">
+            Découvrez les sessions et ateliers pratiques dédiés à la pratique dentaire :
+          </p>
+        </div>
+
+        <div class="adia-url-row">
+          <span class="adia-url-text" id="adia-url-value">adia-academie.ai/sessions</span>
+          <button type="button" class="btn-secondary" id="copy-adia-btn" onclick="copyAdiaUrl()">
+            <i data-lucide="copy" width="16" height="16" aria-hidden="true"></i>
+            <span>Copier l’adresse</span>
+          </button>
+          <span class="copy-feedback" id="adia-feedback" role="status" aria-live="polite"></span>
+        </div>
+
+        <div class="compliance-grid">
+          <div>
+            <span class="label">Orateurs · Contact</span>
+            <p class="prose" style="margin-top: var(--space-xs);">
+              <strong>Dr Laurent ALLOUCHE</strong> et <strong>Dr Jacques BITTON</strong> — joignables via les coordonnées de contact partagées sur <strong>adia-academie.ai/sessions</strong>.
+            </p>
+          </div>
+          <div>
+            <span class="label">Comptes Instagram</span>
+            <p class="prose" style="margin-top: var(--space-xs);">
+              Retrouvez les comptes Instagram des orateurs (<strong>Dr Laurent ALLOUCHE</strong>, <strong>Dr Jacques BITTON</strong>) et d’<strong>ADIA Académie</strong> (identifiants exacts communiqués en clôture de conférence et sur le portail des sessions).
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer container">
+    <div class="footer-inner">
+      <p class="footer-note">Mis en forme avec l'assistance de l'IA, relu et validé par les auteurs.</p>
+      <span class="label">ADF 2026 · Dr Laurent ALLOUCHE · Dr Jacques BITTON</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      document.documentElement.classList.add('js-anim');
+    })();
+
+    var DELIVERABLES = {
+      cr: {
+        title: `Compte rendu remis au patient`,
+        summary: `Le patient retrouve par écrit le diagnostic, les options thérapeutiques discutées au fauteuil et les prochaines étapes.`,
+        kicker: `Aperçu structuré`,
+        points: [
+          `Motif et bilan de la séance : évaluation d’une molaire fracturée (cas fictif).`,
+          `Options exposées : conservation sous couronne si tenon possible, ou extraction et remplacement implantaire.`,
+          `Prochaine étape : cliché complémentaire et temps de réflexion avant validation du projet.`
+        ],
+        stamp: `Document préparé avec l’IA · relu et validé par le praticien`
+      },
+      corresp: {
+        title: `Courrier au correspondant`,
+        summary: `Le confrère reçoit immédiatement la synthèse clinique, le projet de soins global et le rôle précis de chaque intervenant.`,
+        kicker: `Aperçu confraternel`,
+        points: [
+          `Synthèse clinique : dent 16 présentant une reprise carieuse profonde (cas fictif anonymisé).`,
+          `Projet de soins : traitement endodontique préalable avant réhabilitation prothétique au cabinet.`,
+          `Rôle de chacun : prise en charge endodontique chez le correspondant, puis couronne d’usage à notre cabinet.`
+        ],
+        stamp: `Courrier relu, complété et signé par le praticien`
+      },
+      web: {
+        title: `Page web personnelle du patient`,
+        summary: `La page dédiée, créée avec Gamma, permet au patient de relire chez lui les explications et les consignes à son rythme.`,
+        kicker: `Support interactif remis après séance`,
+        points: [
+          `Résumé visuel des choix discutés, sans jargon technique (cas fictif).`,
+          `Consignes pratiques avant et après l’intervention, accessibles depuis un téléphone.`,
+          `Repères temporels et questions préparatoires pour le prochain rendez-vous.`
+        ],
+        stamp: `Contenu vérifié et validé avant partage au patient`
+      }
+    };
+
+    function selectDeliverable(key) {
+      var data = DELIVERABLES[key];
+      if (!data) return;
+
+      var titleEl = document.getElementById('deliv-title');
+      var summaryEl = document.getElementById('deliv-summary');
+      var kickerEl = document.getElementById('deliv-sample-kicker');
+      var pointsEl = document.getElementById('deliv-sample-points');
+      var stampEl = document.getElementById('deliv-stamp');
+
+      if (titleEl) titleEl.textContent = data.title;
+      if (summaryEl) summaryEl.textContent = data.summary;
+      if (kickerEl) kickerEl.textContent = data.kicker;
+      if (stampEl) stampEl.textContent = data.stamp;
+
+      if (pointsEl) {
+        pointsEl.innerHTML = '';
+        data.points.forEach(function (txt) {
+          var li = document.createElement('li');
+          li.textContent = txt;
+          pointsEl.appendChild(li);
+        });
+      }
+
+      var tabMap = { cr: 'tab-cr', corresp: 'tab-corresp', web: 'tab-web' };
+      Object.keys(tabMap).forEach(function (k) {
+        var btn = document.getElementById(tabMap[k]);
+        if (btn) btn.setAttribute('aria-selected', k === key ? 'true' : 'false');
+      });
+    }
+
+    var CABINET_MODES = {
+      habits: [
+        { label: `Désorganisation`, text: `Les repères disparaissent. Personne ne sait exactement qui fait quoi, ni comment.` },
+        { label: `Perte de repères`, text: `Les habitudes tacites s’effacent avec la personne qui les portait au quotidien.` },
+        { label: `Erreurs`, text: `Des étapes sont oubliées, des procédures mal appliquées, des patients moins bien pris en charge.` }
+      ],
+      system: [
+        { label: `Continuité`, text: `Chaque étape du parcours patient reste définie, documentée et reproductible par toute l’équipe.` },
+        { label: `SOP partagées`, text: `La préparation de salle, la stérilisation et les suites opératoires reposent sur des fiches claires.` },
+        { label: `Sérénité`, text: `Un nouveau membre ou un remplaçant prend ses repères rapidement sans baisse de qualité perçue.` }
+      ]
+    };
+
+    function setCabinetMode(mode) {
+      var items = CABINET_MODES[mode];
+      if (!items) return;
+
+      for (var i = 0; i < 3; i++) {
+        var lEl = document.getElementById('out-label-' + (i + 1));
+        var tEl = document.getElementById('out-text-' + (i + 1));
+        if (lEl && items[i]) lEl.textContent = items[i].label;
+        if (tEl && items[i]) tEl.textContent = items[i].text;
+      }
+
+      var btnHabits = document.getElementById('btn-mode-habits');
+      var btnSystem = document.getElementById('btn-mode-system');
+      if (btnHabits) btnHabits.setAttribute('aria-pressed', mode === 'habits' ? 'true' : 'false');
+      if (btnSystem) btnSystem.setAttribute('aria-pressed', mode === 'system' ? 'true' : 'false');
+    }
+
+    function copyTextFallback(text, onSuccess, onFail) {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(text).then(onSuccess).catch(function () {
+          legacyCopy(text, onSuccess, onFail);
+        });
+      } else {
+        legacyCopy(text, onSuccess, onFail);
+      }
+    }
+
+    function legacyCopy(text, onSuccess, onFail) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) onSuccess();
+        else onFail();
+      } catch (e) {
+        onFail();
+      }
+    }
+
+    function copyPrompt(promptId, btnId, feedbackId) {
+      var promptEl = document.getElementById(promptId);
+      var btnEl = document.getElementById(btnId);
+      var fbEl = document.getElementById(feedbackId);
+      if (!promptEl) return;
+
+      var text = promptEl.textContent.trim();
+      copyTextFallback(
+        text,
+        function () {
+          if (fbEl) fbEl.textContent = `Prompt copié`;
+          if (btnEl) {
+            btnEl.classList.add('is-copied');
+            setTimeout(function () {
+              btnEl.classList.remove('is-copied');
+            }, 1800);
+          }
+          setTimeout(function () {
+            if (fbEl) fbEl.textContent = ``;
+          }, 2600);
+        },
+        function () {
+          if (fbEl) fbEl.textContent = `Sélectionnez le texte pour le copier`;
+        }
+      );
+    }
+
+    function copyAdiaUrl() {
+      var urlEl = document.getElementById('adia-url-value');
+      var fbEl = document.getElementById('adia-feedback');
+      if (!urlEl) return;
+      copyTextFallback(
+        urlEl.textContent.trim(),
+        function () {
+          if (fbEl) fbEl.textContent = `Adresse copiée`;
+          setTimeout(function () {
+            if (fbEl) fbEl.textContent = ``;
+          }, 2600);
+        },
+        function () {
+          if (fbEl) fbEl.textContent = `Copiez : adia-academie.ai/sessions`;
+        }
+      );
+    }
+
+    function toggleMobileMenu() {
+      var drawer = document.getElementById('mobile-drawer');
+      var btn = document.getElementById('nav-drawer-btn');
+      if (!drawer || !btn) return;
+      var open = drawer.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function closeMobileMenu() {
+      var drawer = document.getElementById('mobile-drawer');
+      var btn = document.getElementById('nav-drawer-btn');
+      if (!drawer || !btn) return;
+      drawer.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    function animateCounter(el) {
+      if (!el || el.dataset.counted === 'true') return;
+      el.dataset.counted = 'true';
+
+      var target = parseFloat(el.dataset.countTarget || '0');
+      var decimals = parseInt(el.dataset.countDecimals || '0', 10);
+      var prefix = el.dataset.countPrefix || '';
+      var suffix = el.dataset.countSuffix || '';
+
+      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduced || isNaN(target)) {
+        el.textContent = prefix + formatFrenchNumber(target, decimals) + suffix;
+        return;
+      }
+
+      var duration = 950;
+      var start = null;
+      function step(ts) {
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = target * eased;
+        el.textContent = prefix + formatFrenchNumber(current, decimals) + suffix;
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          el.textContent = prefix + formatFrenchNumber(target, decimals) + suffix;
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    function formatFrenchNumber(val, decimals) {
+      if (decimals > 0) {
+        return val.toFixed(decimals).replace('.', ',');
+      }
+      var rounded = Math.round(val);
+      return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    function updateActiveNav(sectionId, labelText) {
+      var links = document.querySelectorAll('[data-nav]');
+      links.forEach(function (link) {
+        if (link.dataset.nav === sectionId) {
+          link.classList.add('is-active');
+        } else {
+          link.classList.remove('is-active');
+        }
+      });
+      var activeName = document.getElementById('nav-active-name');
+      if (activeName && labelText) {
+        activeName.textContent = labelText;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeMobileMenu();
+      });
+
+      var revealEls = document.querySelectorAll('.reveal');
+      var countEls = document.querySelectorAll('[data-count-target]');
+      var sections = document.querySelectorAll('[data-section]');
+
+      if ('IntersectionObserver' in window) {
+        var revealObs = new IntersectionObserver(function (entries, obs) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              obs.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+
+        revealEls.forEach(function (el) {
+          revealObs.observe(el);
+        });
+
+        var countObs = new IntersectionObserver(function (entries, obs) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              animateCounter(entry.target);
+              obs.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.25 });
+
+        countEls.forEach(function (el) {
+          countObs.observe(el);
+        });
+
+        var navObs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              var secId = entry.target.getAttribute('data-section');
+              var secLabel = entry.target.getAttribute('data-label');
+              if (secId) updateActiveNav(secId, secLabel);
+            }
+          });
+        }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+
+        sections.forEach(function (sec) {
+          navObs.observe(sec);
+        });
+      } else {
+        revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+      }
+    });
+  </script>
+</body>
+</html>
