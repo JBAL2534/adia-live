@@ -426,6 +426,7 @@
           <div><div class="t">${esc(c.title)}</div>
             <div class="m">${NOM_TYPE[c.kind] || c.kind}, ${new Date(c.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}${c.hidden ? ", masquée" : ""}</div></div>
           <div class="act">
+            <button class="petit" data-r="1" data-id="${c.id}" data-t="${esc(c.title)}">Renommer</button>
             <button class="petit" data-a="${c.hidden ? "show" : "hide"}" data-id="${c.id}">${c.hidden ? "Afficher" : "Masquer"}</button>
             <button class="petit danger" data-a="delete" data-id="${c.id}">Supprimer</button>
           </div>
@@ -600,6 +601,26 @@
   $("c-csv-tous").addEventListener("click", () => exporterInscrits("tous"));
   setInterval(() => { if (code && !$("ecran-regie").hidden) compterInscrits(); }, 60000);
   new MutationObserver(() => { if (!$("ecran-regie").hidden) compterInscrits(); }).observe($("ecran-regie"), { attributes: true, attributeFilter: ["hidden"] });
+
+  // --- Renommer une carte publiée (le fichier n'est pas touché) ---
+  $("liste").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-r]"); if (!b) return;
+    const actuel = b.dataset.t || "";
+    const saisi = prompt("Nouveau titre de la carte :", actuel);
+    if (saisi === null) return;
+    const titre = saisi.replace(/\s+/g, " ").trim();
+    if (!titre || titre === actuel) return;
+    b.disabled = true;
+    try {
+      const fd = new FormData();
+      fd.append("action", "rename"); fd.append("code", code); fd.append("id", b.dataset.id); fd.append("title", titre);
+      const r = await fetch(FN.replace("live-admin", "live-contacts"), { method: "POST", body: fd, headers: { apikey: KEY }, signal: AbortSignal.timeout(15000) });
+      let d = {}; try { d = await r.json(); } catch {}
+      if (!r.ok) throw new Error(d.error || "Le serveur ne répond pas.");
+      toast("Renommée");
+      rafraichir();
+    } catch (err) { toast(err.message, true); b.disabled = false; }
+  });
 </script>
 </body>
 </html>
