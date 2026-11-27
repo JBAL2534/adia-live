@@ -133,6 +133,15 @@
   .questions .case { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 400; margin: 0.2rem 0 0.9rem; cursor: pointer; }
   .questions .case input { width: 1.25rem; height: 1.25rem; margin: 0.15rem 0 0; flex: none; accent-color: var(--or); }
   .questions .merci { color: var(--or-clair); font-weight: 600; margin: 0.4rem 0 0; }
+  .installer { position: fixed; left: 0.75rem; right: 0.75rem; bottom: calc(0.75rem + env(safe-area-inset-bottom)); z-index: 50; max-width: 34rem; margin: 0 auto;
+    background: #15120B; border: 1px solid var(--or); border-radius: 1rem; padding: 0.9rem 2.6rem 0.9rem 1rem; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
+  .installer strong { display: block; font: 600 1rem/1.3 var(--titre); color: var(--or-clair); margin-bottom: 0.3rem; }
+  .installer p { margin: 0; font-size: 0.92rem; line-height: 1.45; color: var(--texte); }
+  .installer .bouton { margin-top: 0.7rem; min-height: 2.5rem; padding: 0.45rem 1.1rem; font-size: 0.95rem; cursor: pointer; }
+  .installer .fermer { position: absolute; top: 0.35rem; right: 0.35rem; width: 2.4rem; height: 2.4rem; border: 0; background: transparent; color: var(--doux); font-size: 1.5rem; line-height: 1; cursor: pointer; border-radius: 50%; }
+  .installer .fermer:focus-visible { outline: 2px solid var(--or-clair); }
+  .installer .bouton[hidden] { display: none; }
+  .installer .icone-partage { display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -0.15em; }
   .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
   .garder { margin: 1rem 0 0; }
   .garder button { cursor: pointer; min-height: 2.5rem; padding: 0.45rem 1rem; font-size: 0.92rem; }
@@ -215,6 +224,12 @@
     <p class="merci" id="i-merci" hidden>Merci, vous êtes inscrit à l’actualité ADIA.</p>
   </section>
 
+  <aside class="installer" id="installer" hidden aria-labelledby="inst-titre">
+    <button class="fermer" id="inst-fermer" type="button" aria-label="Fermer">×</button>
+    <strong id="inst-titre">Gardez cette page comme une application</strong>
+    <p id="inst-texte"></p>
+    <button class="bouton" id="inst-bouton" type="button" hidden>Installer</button>
+  </aside>
   <footer>
     <p class="nom">ADIA</p>
     <p class="devise"><span>Académie Dentaire</span><span>d’Intelligence Artificielle</span></p>
@@ -453,6 +468,42 @@
       }
       btn.disabled = false; btn.textContent = "Je m’inscris";
     });
+  })();
+
+  // --- Bandeau : installer la page sur l'écran d'accueil ---
+  (() => {
+    const CLE = "adia-live-installer-ferme";
+    const bandeau = document.getElementById("installer");
+    const texte = document.getElementById("inst-texte");
+    const bouton = document.getElementById("inst-bouton");
+    const installee = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    let ferme = false; try { ferme = !!localStorage.getItem(CLE); } catch {}
+    const ua = navigator.userAgent;
+    const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const android = /Android/.test(ua);
+    const samsung = /SamsungBrowser/.test(ua);
+    if (installee() || ferme || !(ios || android)) return;
+    const PARTAGE = '<svg class="icone-partage" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+    if (ios) texte.innerHTML = "Touchez le bouton <b>Partager</b> " + PARTAGE + " puis <b>« Sur l’écran d’accueil »</b>. Vous retrouverez les démonstrations en un geste.";
+    else if (samsung) texte.innerHTML = "Touchez le menu <b>≡</b> en bas, puis <b>« Ajouter la page à »</b> et <b>« Écran d’accueil »</b>.";
+    else texte.innerHTML = "Touchez le menu <b>⋮</b> en haut à droite, puis <b>« Ajouter à l’écran d’accueil »</b> ou <b>« Installer l’application »</b>.";
+    let invite = null;
+    window.addEventListener("beforeinstallprompt", e => {
+      e.preventDefault(); invite = e;
+      texte.textContent = "Installez-la sur votre téléphone pour retrouver les démonstrations en un geste, même après la conférence.";
+      bouton.hidden = false;
+    });
+    bouton.addEventListener("click", async () => {
+      if (!invite) return;
+      invite.prompt();
+      try { const r = await invite.userChoice; if (r.outcome === "accepted") bandeau.hidden = true; } catch {}
+      invite = null; bouton.hidden = true;
+    });
+    window.addEventListener("appinstalled", () => { bandeau.hidden = true; });
+    document.getElementById("inst-fermer").addEventListener("click", () => {
+      bandeau.hidden = true; try { localStorage.setItem(CLE, "1"); } catch {}
+    });
+    setTimeout(() => { if (!installee()) bandeau.hidden = false; }, 2500);
   })();
 </script>
 </body>
